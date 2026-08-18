@@ -1,0 +1,770 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		139C671732264CDB55D2ECDC /* QRCodeSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8CA3551C93247D6BCA02DDE /* QRCodeSheet.swift */; };
+		1424E07662EA3CD7FDE195CA /* NearbyShareCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B6345D16F0B361D127A1B478 /* NearbyShareCore.framework */; };
+		14CC859C0F45FB90C5904083 /* SwiftProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = 5AE2CC7EE92CF125765E641F /* SwiftProtobuf */; };
+		2234D32E00FFFB07981657A9 /* LiftDropModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB35D8216EA9C0460D8D2B7D /* LiftDropModel.swift */; };
+		2B610251B6973CE42723A1C7 /* SignalBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7CF05AAF388D326AF01EBBF /* SignalBackground.swift */; };
+		2EF6B2EBDB4EA65EF493020B /* LiftDropShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 755A67277A406E64E43E7DEA /* LiftDropShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		33B63465DA5314A30EE57628 /* device_to_device_messages.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 788EBF6F413BB37247DB6DF8 /* device_to_device_messages.pb.swift */; };
+		33B6A08E5ECA30A309A7E201 /* DotPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE76304B8C296AE64457A9B3 /* DotPalette.swift */; };
+		3823A98CDF02E14FA477303C /* NearbyShareCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B6345D16F0B361D127A1B478 /* NearbyShareCore.framework */; };
+		3B02925A8E82A60AA6D7E802 /* Data+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = E43123DAB9147DCF89E1423B /* Data+Extensions.swift */; };
+		4CFBB7E36B1FA30A69330379 /* sharing_enums.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77ABB994AEE46D846941CB40 /* sharing_enums.pb.swift */; };
+		4F988F74EEC1FB74616456BB /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556660FE3572A54815E3DBB7 /* ContentView.swift */; };
+		59B15FE58A0B740FB3D17A9A /* InboundNearbyConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = B62B1A5F9B352DD535A510D0 /* InboundNearbyConnection.swift */; };
+		5C68DBCF4CAC8192AD59D3A3 /* DotMatrix.swift in Sources */ = {isa = PBXBuildFile; fileRef = 260D57C0F64967BC1AAFE1F0 /* DotMatrix.swift */; };
+		5F0E620BBA9C16280CF0092C /* securemessage.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4B3B1BF07AFBFB2C57DF16C /* securemessage.pb.swift */; };
+		64BEA6E2D1AC9ACEB6691208 /* ShareExtensionModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DDA9808BC06407053DAB516 /* ShareExtensionModel.swift */; };
+		6E0439ABDBE0FEFC61648F18 /* SignalBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7CF05AAF388D326AF01EBBF /* SignalBackground.swift */; };
+		733BC43D853D7D27BBFFA284 /* offline_wire_formats.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4242F4773523DFACEF7C1592 /* offline_wire_formats.pb.swift */; };
+		7A90BBE8551811A9B37A78E0 /* OutboundNearbyConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB311B6859A4EB0CA344D1F1 /* OutboundNearbyConnection.swift */; };
+		9E839E7D5100DBAEDE12A040 /* LiftDropApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0E400E1269D5FAE628B2D91 /* LiftDropApp.swift */; };
+		A01B947C3AB55A3E842B087F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5FC67F4C2819A21D4513FE65 /* Assets.xcassets */; };
+		A0AC8B39035E1247A0DE84D4 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 0F1AFF6CE92530054E236DC8 /* PrivacyInfo.xcprivacy */; };
+		B3947F46BF977209D706473A /* NearbyConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73A7E9F5E15B82C521D85517 /* NearbyConnection.swift */; };
+		B8AE056300B159D09541AA7F /* DotMatrix.swift in Sources */ = {isa = PBXBuildFile; fileRef = 260D57C0F64967BC1AAFE1F0 /* DotMatrix.swift */; };
+		BF58A706146909632D75BE6C /* wire_format.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E631384D7951DC4DC146354 /* wire_format.pb.swift */; };
+		C784177C0BAAFF082B5D936F /* ShareExtensionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 225272C6495C360EAB660FE7 /* ShareExtensionView.swift */; };
+		C793AAD88C5419309969E7A8 /* NearbyErrorDescription.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB6118C8E31C6121351C45CF /* NearbyErrorDescription.swift */; };
+		C7D1006D3584FE2A68696EAE /* SymmetricKey+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F55E239C182A7E7D12FEDAC2 /* SymmetricKey+Extensions.swift */; };
+		CBE909B40AFED4ACCEE3F047 /* NearbyShareCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = B6345D16F0B361D127A1B478 /* NearbyShareCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		CE3F050F94445D88A7E755C7 /* NearbyConnectionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBD8CD5D1C24B5486E558D5C /* NearbyConnectionManager.swift */; };
+		CFAD1D105045BE41BB983A5D /* NearbyErrorDescription.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB6118C8E31C6121351C45CF /* NearbyErrorDescription.swift */; };
+		D71559195E90FB0048091336 /* QRCodeSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8CA3551C93247D6BCA02DDE /* QRCodeSheet.swift */; };
+		DFF03A1B42F6581037DB0347 /* DotPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE76304B8C296AE64457A9B3 /* DotPalette.swift */; };
+		E409083F2C3A0ED325037D14 /* SwiftECC in Frameworks */ = {isa = PBXBuildFile; productRef = 9A30AD160442AA813FD41190 /* SwiftECC */; };
+		F2F8CB6E437666494778E627 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 75543D5D23CB2FBA0A06D29F /* PrivacyInfo.xcprivacy */; };
+		F5CEA46CCDBEE5F0C97907A8 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 264B9DAA0507C1518002D262 /* ShareViewController.swift */; };
+		F69212D1B445510796B6C576 /* ukey.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7734E17010D036A14622BD9 /* ukey.pb.swift */; };
+		FD0E89F1D39E9805D0B263C3 /* securegcm.pb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D42E4A961D2747D489D7A67 /* securegcm.pb.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		4ED588E0DB8CB0877D744F47 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 743C705DAA5655A6F76EBCCF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F929C53BC0BC2A2A88CFA893;
+			remoteInfo = NearbyShareCore;
+		};
+		A6E1DCBF3521A28A2D8C36DF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 743C705DAA5655A6F76EBCCF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8E473675D5B00C1950E1E4AF;
+			remoteInfo = LiftDropShareExtension;
+		};
+		CA33E3827173F070AB4ECFF2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 743C705DAA5655A6F76EBCCF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F929C53BC0BC2A2A88CFA893;
+			remoteInfo = NearbyShareCore;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		A7D1434A23D9EC7649274478 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				CBE909B40AFED4ACCEE3F047 /* NearbyShareCore.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E9B5A083BF04BEA43007E760 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				2EF6B2EBDB4EA65EF493020B /* LiftDropShareExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		0F1AFF6CE92530054E236DC8 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		225272C6495C360EAB660FE7 /* ShareExtensionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareExtensionView.swift; sourceTree = "<group>"; };
+		24ABFED445061EC262DEF416 /* LiftDrop.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = LiftDrop.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		260D57C0F64967BC1AAFE1F0 /* DotMatrix.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DotMatrix.swift; sourceTree = "<group>"; };
+		264B9DAA0507C1518002D262 /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
+		2D42E4A961D2747D489D7A67 /* securegcm.pb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = securegcm.pb.swift; sourceTree = "<group>"; };
+		2D645A6D10CF11B70C1A3D13 /* LiftDrop.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LiftDrop.entitlements; sourceTree = "<group>"; };
+		2DE13D7DE19149AEAE7B886B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		4242F4773523DFACEF7C1592 /* offline_wire_formats.pb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = offline_wire_formats.pb.swift; sourceTree = "<group>"; };
+		556660FE3572A54815E3DBB7 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		5FC67F4C2819A21D4513FE65 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		73A7E9F5E15B82C521D85517 /* NearbyConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NearbyConnection.swift; sourceTree = "<group>"; };
+		75543D5D23CB2FBA0A06D29F /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		755A67277A406E64E43E7DEA /* LiftDropShareExtension.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = LiftDropShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		77ABB994AEE46D846941CB40 /* sharing_enums.pb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = sharing_enums.pb.swift; sourceTree = "<group>"; };
+		788EBF6F413BB37247DB6DF8 /* device_to_device_messages.pb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = device_to_device_messages.pb.swift; sourceTree = "<group>"; };
+		8DDA9808BC06407053DAB516 /* ShareExtensionModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareExtensionModel.swift; sourceTree = "<group>"; };
+		9E631384D7951DC4DC146354 /* wire_format.pb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = wire_format.pb.swift; sourceTree = "<group>"; };
+		AB311B6859A4EB0CA344D1F1 /* OutboundNearbyConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutboundNearbyConnection.swift; sourceTree = "<group>"; };
+		B62B1A5F9B352DD535A510D0 /* InboundNearbyConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InboundNearbyConnection.swift; sourceTree = "<group>"; };
+		B6345D16F0B361D127A1B478 /* NearbyShareCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = NearbyShareCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		B8CA3551C93247D6BCA02DDE /* QRCodeSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRCodeSheet.swift; sourceTree = "<group>"; };
+		BBD8CD5D1C24B5486E558D5C /* NearbyConnectionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NearbyConnectionManager.swift; sourceTree = "<group>"; };
+		BFE1DB65C7CEC039088151FE /* LiftDropShareExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LiftDropShareExtension.entitlements; sourceTree = "<group>"; };
+		C0E400E1269D5FAE628B2D91 /* LiftDropApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiftDropApp.swift; sourceTree = "<group>"; };
+		C7734E17010D036A14622BD9 /* ukey.pb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ukey.pb.swift; sourceTree = "<group>"; };
+		DB6118C8E31C6121351C45CF /* NearbyErrorDescription.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NearbyErrorDescription.swift; sourceTree = "<group>"; };
+		E43123DAB9147DCF89E1423B /* Data+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Data+Extensions.swift"; sourceTree = "<group>"; };
+		E4B3B1BF07AFBFB2C57DF16C /* securemessage.pb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = securemessage.pb.swift; sourceTree = "<group>"; };
+		E7CF05AAF388D326AF01EBBF /* SignalBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalBackground.swift; sourceTree = "<group>"; };
+		EB35D8216EA9C0460D8D2B7D /* LiftDropModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiftDropModel.swift; sourceTree = "<group>"; };
+		EE76304B8C296AE64457A9B3 /* DotPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DotPalette.swift; sourceTree = "<group>"; };
+		F55E239C182A7E7D12FEDAC2 /* SymmetricKey+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SymmetricKey+Extensions.swift"; sourceTree = "<group>"; };
+		FC8A29E4969E7E4AC8299ABE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		0B6B447F589A0F1DBFC82FDA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1424E07662EA3CD7FDE195CA /* NearbyShareCore.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8F423AF4B76EE18C7350E427 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				14CC859C0F45FB90C5904083 /* SwiftProtobuf in Frameworks */,
+				E409083F2C3A0ED325037D14 /* SwiftECC in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D473B0C45A8D907919566CE9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3823A98CDF02E14FA477303C /* NearbyShareCore.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		134F02810B8348BAFC278EC4 /* LiftDropApp */ = {
+			isa = PBXGroup;
+			children = (
+				5FC67F4C2819A21D4513FE65 /* Assets.xcassets */,
+				556660FE3572A54815E3DBB7 /* ContentView.swift */,
+				FC8A29E4969E7E4AC8299ABE /* Info.plist */,
+				2D645A6D10CF11B70C1A3D13 /* LiftDrop.entitlements */,
+				C0E400E1269D5FAE628B2D91 /* LiftDropApp.swift */,
+				EB35D8216EA9C0460D8D2B7D /* LiftDropModel.swift */,
+				0F1AFF6CE92530054E236DC8 /* PrivacyInfo.xcprivacy */,
+			);
+			path = LiftDropApp;
+			sourceTree = "<group>";
+		};
+		2CA2336C38BB1BC5AD6ACBAF /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				134F02810B8348BAFC278EC4 /* LiftDropApp */,
+				DF55CD4FB0F216E92CD40058 /* LiftDropShareExtension */,
+				EA2EEA023DEA4F07F8AA2A23 /* SharedUI */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		358C2D957EA52F3E4F57048D /* NearbyShare */ = {
+			isa = PBXGroup;
+			children = (
+				E43123DAB9147DCF89E1423B /* Data+Extensions.swift */,
+				B62B1A5F9B352DD535A510D0 /* InboundNearbyConnection.swift */,
+				73A7E9F5E15B82C521D85517 /* NearbyConnection.swift */,
+				BBD8CD5D1C24B5486E558D5C /* NearbyConnectionManager.swift */,
+				AB311B6859A4EB0CA344D1F1 /* OutboundNearbyConnection.swift */,
+				F55E239C182A7E7D12FEDAC2 /* SymmetricKey+Extensions.swift */,
+				FD57D00E783F5842CA48726C /* Protobuf */,
+			);
+			path = NearbyShare;
+			sourceTree = "<group>";
+		};
+		3F4F91D198807982DB329B03 = {
+			isa = PBXGroup;
+			children = (
+				358C2D957EA52F3E4F57048D /* NearbyShare */,
+				2CA2336C38BB1BC5AD6ACBAF /* Sources */,
+				ABA61C1B218D9F199BFF2DC9 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		ABA61C1B218D9F199BFF2DC9 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				24ABFED445061EC262DEF416 /* LiftDrop.app */,
+				755A67277A406E64E43E7DEA /* LiftDropShareExtension.appex */,
+				B6345D16F0B361D127A1B478 /* NearbyShareCore.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		DF55CD4FB0F216E92CD40058 /* LiftDropShareExtension */ = {
+			isa = PBXGroup;
+			children = (
+				2DE13D7DE19149AEAE7B886B /* Info.plist */,
+				BFE1DB65C7CEC039088151FE /* LiftDropShareExtension.entitlements */,
+				75543D5D23CB2FBA0A06D29F /* PrivacyInfo.xcprivacy */,
+				8DDA9808BC06407053DAB516 /* ShareExtensionModel.swift */,
+				225272C6495C360EAB660FE7 /* ShareExtensionView.swift */,
+				264B9DAA0507C1518002D262 /* ShareViewController.swift */,
+			);
+			path = LiftDropShareExtension;
+			sourceTree = "<group>";
+		};
+		EA2EEA023DEA4F07F8AA2A23 /* SharedUI */ = {
+			isa = PBXGroup;
+			children = (
+				260D57C0F64967BC1AAFE1F0 /* DotMatrix.swift */,
+				EE76304B8C296AE64457A9B3 /* DotPalette.swift */,
+				DB6118C8E31C6121351C45CF /* NearbyErrorDescription.swift */,
+				B8CA3551C93247D6BCA02DDE /* QRCodeSheet.swift */,
+				E7CF05AAF388D326AF01EBBF /* SignalBackground.swift */,
+			);
+			path = SharedUI;
+			sourceTree = "<group>";
+		};
+		FD57D00E783F5842CA48726C /* Protobuf */ = {
+			isa = PBXGroup;
+			children = (
+				788EBF6F413BB37247DB6DF8 /* device_to_device_messages.pb.swift */,
+				4242F4773523DFACEF7C1592 /* offline_wire_formats.pb.swift */,
+				2D42E4A961D2747D489D7A67 /* securegcm.pb.swift */,
+				E4B3B1BF07AFBFB2C57DF16C /* securemessage.pb.swift */,
+				77ABB994AEE46D846941CB40 /* sharing_enums.pb.swift */,
+				C7734E17010D036A14622BD9 /* ukey.pb.swift */,
+				9E631384D7951DC4DC146354 /* wire_format.pb.swift */,
+			);
+			path = Protobuf;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		052F97D124EC1054C3522C79 /* LiftDrop */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1F314A485A397602A0E1F81A /* Build configuration list for PBXNativeTarget "LiftDrop" */;
+			buildPhases = (
+				0A416BC193B5915CC7996234 /* Sources */,
+				78F3C0950F113FBFFB0AA9A2 /* Resources */,
+				D473B0C45A8D907919566CE9 /* Frameworks */,
+				E9B5A083BF04BEA43007E760 /* Embed Foundation Extensions */,
+				A7D1434A23D9EC7649274478 /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				6452176F1B03C8FE668C8453 /* PBXTargetDependency */,
+				27C0D758CF37BC45CC0E09A0 /* PBXTargetDependency */,
+			);
+			name = LiftDrop;
+			packageProductDependencies = (
+			);
+			productName = LiftDrop;
+			productReference = 24ABFED445061EC262DEF416 /* LiftDrop.app */;
+			productType = "com.apple.product-type.application";
+		};
+		8E473675D5B00C1950E1E4AF /* LiftDropShareExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6AD45F010BCC5CC36B458169 /* Build configuration list for PBXNativeTarget "LiftDropShareExtension" */;
+			buildPhases = (
+				D797361D158D264E8DBBB172 /* Sources */,
+				05C6C9A66D738E3D37A3EC02 /* Resources */,
+				0B6B447F589A0F1DBFC82FDA /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BF600C2B74D0CE4AF28DFF81 /* PBXTargetDependency */,
+			);
+			name = LiftDropShareExtension;
+			packageProductDependencies = (
+			);
+			productName = LiftDropShareExtension;
+			productReference = 755A67277A406E64E43E7DEA /* LiftDropShareExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		F929C53BC0BC2A2A88CFA893 /* NearbyShareCore */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1C22D3375C82D5F079E022C6 /* Build configuration list for PBXNativeTarget "NearbyShareCore" */;
+			buildPhases = (
+				211EF7710C14BD05623499B1 /* Sources */,
+				8F423AF4B76EE18C7350E427 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = NearbyShareCore;
+			packageProductDependencies = (
+				5AE2CC7EE92CF125765E641F /* SwiftProtobuf */,
+				9A30AD160442AA813FD41190 /* SwiftECC */,
+			);
+			productName = NearbyShareCore;
+			productReference = B6345D16F0B361D127A1B478 /* NearbyShareCore.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		743C705DAA5655A6F76EBCCF /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+				};
+			};
+			buildConfigurationList = BCCB850D6991D6B314768180 /* Build configuration list for PBXProject "LiftDrop" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 3F4F91D198807982DB329B03;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				61239D130D9119DE4EF95B62 /* XCRemoteSwiftPackageReference "SwiftECC" */,
+				3AF539F7120146EBDDEAD5A0 /* XCRemoteSwiftPackageReference "swift-protobuf" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = ABA61C1B218D9F199BFF2DC9 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				F929C53BC0BC2A2A88CFA893 /* NearbyShareCore */,
+				052F97D124EC1054C3522C79 /* LiftDrop */,
+				8E473675D5B00C1950E1E4AF /* LiftDropShareExtension */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		05C6C9A66D738E3D37A3EC02 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F2F8CB6E437666494778E627 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		78F3C0950F113FBFFB0AA9A2 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A01B947C3AB55A3E842B087F /* Assets.xcassets in Resources */,
+				A0AC8B39035E1247A0DE84D4 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		0A416BC193B5915CC7996234 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4F988F74EEC1FB74616456BB /* ContentView.swift in Sources */,
+				B8AE056300B159D09541AA7F /* DotMatrix.swift in Sources */,
+				33B6A08E5ECA30A309A7E201 /* DotPalette.swift in Sources */,
+				9E839E7D5100DBAEDE12A040 /* LiftDropApp.swift in Sources */,
+				2234D32E00FFFB07981657A9 /* LiftDropModel.swift in Sources */,
+				C793AAD88C5419309969E7A8 /* NearbyErrorDescription.swift in Sources */,
+				139C671732264CDB55D2ECDC /* QRCodeSheet.swift in Sources */,
+				2B610251B6973CE42723A1C7 /* SignalBackground.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		211EF7710C14BD05623499B1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3B02925A8E82A60AA6D7E802 /* Data+Extensions.swift in Sources */,
+				59B15FE58A0B740FB3D17A9A /* InboundNearbyConnection.swift in Sources */,
+				B3947F46BF977209D706473A /* NearbyConnection.swift in Sources */,
+				CE3F050F94445D88A7E755C7 /* NearbyConnectionManager.swift in Sources */,
+				7A90BBE8551811A9B37A78E0 /* OutboundNearbyConnection.swift in Sources */,
+				C7D1006D3584FE2A68696EAE /* SymmetricKey+Extensions.swift in Sources */,
+				33B63465DA5314A30EE57628 /* device_to_device_messages.pb.swift in Sources */,
+				733BC43D853D7D27BBFFA284 /* offline_wire_formats.pb.swift in Sources */,
+				FD0E89F1D39E9805D0B263C3 /* securegcm.pb.swift in Sources */,
+				5F0E620BBA9C16280CF0092C /* securemessage.pb.swift in Sources */,
+				4CFBB7E36B1FA30A69330379 /* sharing_enums.pb.swift in Sources */,
+				F69212D1B445510796B6C576 /* ukey.pb.swift in Sources */,
+				BF58A706146909632D75BE6C /* wire_format.pb.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D797361D158D264E8DBBB172 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5C68DBCF4CAC8192AD59D3A3 /* DotMatrix.swift in Sources */,
+				DFF03A1B42F6581037DB0347 /* DotPalette.swift in Sources */,
+				CFAD1D105045BE41BB983A5D /* NearbyErrorDescription.swift in Sources */,
+				D71559195E90FB0048091336 /* QRCodeSheet.swift in Sources */,
+				64BEA6E2D1AC9ACEB6691208 /* ShareExtensionModel.swift in Sources */,
+				C784177C0BAAFF082B5D936F /* ShareExtensionView.swift in Sources */,
+				F5CEA46CCDBEE5F0C97907A8 /* ShareViewController.swift in Sources */,
+				6E0439ABDBE0FEFC61648F18 /* SignalBackground.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		27C0D758CF37BC45CC0E09A0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8E473675D5B00C1950E1E4AF /* LiftDropShareExtension */;
+			targetProxy = A6E1DCBF3521A28A2D8C36DF /* PBXContainerItemProxy */;
+		};
+		6452176F1B03C8FE668C8453 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F929C53BC0BC2A2A88CFA893 /* NearbyShareCore */;
+			targetProxy = 4ED588E0DB8CB0877D744F47 /* PBXContainerItemProxy */;
+		};
+		BF600C2B74D0CE4AF28DFF81 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F929C53BC0BC2A2A88CFA893 /* NearbyShareCore */;
+			targetProxy = CA33E3827173F070AB4ECFF2 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		0DC32D178F63242F1EDD9924 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "";
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				GENERATE_INFOPLIST_FILE = YES;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.unrealjune.takeoff.NearbyShareCore;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = Release;
+		};
+		26A31F2207BB34217ADF4E8B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Sources/LiftDropShareExtension/LiftDropShareExtension.entitlements;
+				INFOPLIST_FILE = Sources/LiftDropShareExtension/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.unrealjune.takeoff.ShareExtension;
+				PRODUCT_NAME = LiftDropShareExtension;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		2B5B3D514C6E3664E00D94A6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
+		4576ACB27304259D812A3B65 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Sources/LiftDropShareExtension/LiftDropShareExtension.entitlements;
+				INFOPLIST_FILE = Sources/LiftDropShareExtension/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.unrealjune.takeoff.ShareExtension;
+				PRODUCT_NAME = LiftDropShareExtension;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		8F8E0C4FD8C2B3F9F858D3E9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "";
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				GENERATE_INFOPLIST_FILE = YES;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.unrealjune.takeoff.NearbyShareCore;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = Debug;
+		};
+		B3E367EC00D3563DCB71AE73 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Sources/LiftDropApp/LiftDrop.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = Sources/LiftDropApp/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.unrealjune.takeoff;
+				PRODUCT_NAME = LiftDrop;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		C1956EB2A52F1C994960310F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Sources/LiftDropApp/LiftDrop.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = Sources/LiftDropApp/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.unrealjune.takeoff;
+				PRODUCT_NAME = LiftDrop;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		E22EF75BDB21D954332B258E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1C22D3375C82D5F079E022C6 /* Build configuration list for PBXNativeTarget "NearbyShareCore" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8F8E0C4FD8C2B3F9F858D3E9 /* Debug */,
+				0DC32D178F63242F1EDD9924 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		1F314A485A397602A0E1F81A /* Build configuration list for PBXNativeTarget "LiftDrop" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B3E367EC00D3563DCB71AE73 /* Debug */,
+				C1956EB2A52F1C994960310F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		6AD45F010BCC5CC36B458169 /* Build configuration list for PBXNativeTarget "LiftDropShareExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4576ACB27304259D812A3B65 /* Debug */,
+				26A31F2207BB34217ADF4E8B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		BCCB850D6991D6B314768180 /* Build configuration list for PBXProject "LiftDrop" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2B5B3D514C6E3664E00D94A6 /* Debug */,
+				E22EF75BDB21D954332B258E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		3AF539F7120146EBDDEAD5A0 /* XCRemoteSwiftPackageReference "swift-protobuf" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-protobuf.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.27.0;
+			};
+		};
+		61239D130D9119DE4EF95B62 /* XCRemoteSwiftPackageReference "SwiftECC" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/leif-ibsen/SwiftECC.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		5AE2CC7EE92CF125765E641F /* SwiftProtobuf */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3AF539F7120146EBDDEAD5A0 /* XCRemoteSwiftPackageReference "swift-protobuf" */;
+			productName = SwiftProtobuf;
+		};
+		9A30AD160442AA813FD41190 /* SwiftECC */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 61239D130D9119DE4EF95B62 /* XCRemoteSwiftPackageReference "SwiftECC" */;
+			productName = SwiftECC;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 743C705DAA5655A6F76EBCCF /* Project object */;
+}
