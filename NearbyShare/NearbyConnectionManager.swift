@@ -7,7 +7,6 @@
 
 import Foundation
 import Network
-import System
 import CryptoKit
 import SwiftECC
 
@@ -85,6 +84,12 @@ public struct FileMetadata{
 	public let name:String
 	public let size:Int64
 	public let mimeType:String
+}
+
+public protocol ReceivedContentHandler:AnyObject{
+	func destinationURL(for file:FileMetadata) throws -> URL
+	func didReceiveFile(at url:URL, from device:RemoteDeviceInfo)
+	func didReceiveURL(_ url:URL, from device:RemoteDeviceInfo)
 }
 
 struct FoundServiceInfo{
@@ -169,7 +174,12 @@ struct EndpointInfo{
 
 public protocol MainAppDelegate{
 	func obtainUserConsent(for transfer:TransferMetadata, from device:RemoteDeviceInfo)
+	func incomingTransfer(id:String, progress:Double)
 	func incomingTransfer(id:String, didFinishWith error:Error?)
+}
+
+public extension MainAppDelegate{
+	func incomingTransfer(id:String, progress:Double){}
 }
 
 public protocol ShareExtensionDelegate:AnyObject{
@@ -185,7 +195,7 @@ public protocol ShareExtensionDelegate:AnyObject{
 
 public class NearbyConnectionManager : NSObject, NetServiceDelegate, InboundNearbyConnectionDelegate, OutboundNearbyConnectionDelegate{
 	
-	private var tcpListener:NWListener;
+	private var tcpListener:NWListener?
 	public let endpointID:[UInt8]=generateEndpointID()
 	private var mdnsService:NetService?
 	private var activeConnections:[String:InboundNearbyConnection]=[:]
@@ -193,6 +203,9 @@ public class NearbyConnectionManager : NSObject, NetServiceDelegate, InboundNear
 	private var shareExtensionDelegates:[ShareExtensionDelegate]=[]
 	private var outgoingTransfers:[String:OutgoingTransferInfo]=[:]
 	public var mainAppDelegate:(any MainAppDelegate)?
+	public weak var receivedContentHandler:(any ReceivedContentHandler)?
+	public var localDeviceName=ProcessInfo.processInfo.hostName
+	public var localDeviceType=RemoteDeviceInfo.DeviceType.computer
 	private var discoveryRefCount=0
 	
 	private var browser:NWBrowser?
@@ -206,28 +219,42 @@ public class NearbyConnectionManager : NSObject, NetServiceDelegate, InboundNear
 	public static let shared=NearbyConnectionManager()
 	
 	override init() {
-		tcpListener=try! NWListener(using: NWParameters(tls: .none))
 		super.init()
 	}
 	
 	public func becomeVisible(){
+		guard tcpListener==nil else {return}
+		do{
+			tcpListener=try NWListener(using: NWParameters(tls: .none))
+		}catch{
+			mainAppDelegate?.incomingTransfer(id: "", didFinishWith: error)
+			return
+		}
 		startTCPListener()
+	}
+
+	public func resignVisibility(){
+		mdnsService?.stop()
+		mdnsService=nil
+		tcpListener?.cancel()
+		tcpListener=nil
 	}
 	
 	private func startTCPListener(){
-		tcpListener.stateUpdateHandler={(state:NWListener.State) in
+		tcpListener?.stateUpdateHandler={(state:NWListener.State) in
 			if case .ready = state {
 				self.initMDNS()
 			}
 		}
-		tcpListener.newConnectionHandler={(connection:NWConnection) in
+		tcpListener?.newConnectionHandler={(connection:NWConnection) in
 			let id=UUID().uuidString
 			let conn=InboundNearbyConnection(connection: connection, id: id)
 			self.activeConnections[id]=conn
 			conn.delegate=self
+			conn.receivedContentHandler=self.receivedContentHandler
 			conn.start()
 		}
-		tcpListener.start(queue: .global(qos: .utility))
+		tcpListener?.start(queue: .global(qos: .utility))
 	}
 	
 	private static func generateEndpointID()->[UInt8]{
@@ -247,9 +274,10 @@ public class NearbyConnectionManager : NSObject, NetServiceDelegate, InboundNear
 			0, 0
 		]
 		let name=Data(nameBytes).urlSafeBase64EncodedString()
-		let endpointInfo=EndpointInfo(name: Host.current().localizedName!, deviceType: .computer)
+		let endpointInfo=EndpointInfo(name: localDeviceName, deviceType: localDeviceType)
 		
-		let port:Int32=Int32(tcpListener.port!.rawValue)
+		guard let portValue=tcpListener?.port?.rawValue else {return}
+		let port:Int32=Int32(portValue)
 		mdnsService=NetService(domain: "", type: "_FC9F5ED42C8A._tcp.", name: name, port: port)
 		mdnsService?.delegate=self
 		mdnsService?.setTXTRecord(NetService.data(fromTXTRecord: [
@@ -267,6 +295,12 @@ public class NearbyConnectionManager : NSObject, NetServiceDelegate, InboundNear
 		guard let delegate=mainAppDelegate else {return}
 		delegate.incomingTransfer(id: connection.id, didFinishWith: error)
 		activeConnections.removeValue(forKey: connection.id)
+	}
+
+	func inboundConnection(_ connection:InboundNearbyConnection, transferProgress:Double){
+		DispatchQueue.main.async {
+			self.mainAppDelegate?.incomingTransfer(id: connection.id, progress: transferProgress)
+		}
 	}
 	
 	public func submitUserConsent(transferID:String, accept:Bool){
@@ -329,7 +363,7 @@ public class NearbyConnectionManager : NSObject, NetServiceDelegate, InboundNear
 		guard nameData.count>=10 else {return nil}
 		let pcp=nameData[0]
 		guard pcp==0x23 else {return nil}
-		let endpointID=String(data: nameData.subdata(in: 1..<5), encoding: .ascii)!
+		guard let endpointID=String(data: nameData.subdata(in: 1..<5), encoding: .ascii) else {return nil}
 		let serviceIDHash=nameData.subdata(in: 5..<8)
 		guard serviceIDHash==Data([0xFC, 0x9F, 0x5E]) else {return nil}
 		return endpointID
@@ -364,9 +398,6 @@ public class NearbyConnectionManager : NSObject, NetServiceDelegate, InboundNear
 		}
 		
 		if let qrData=endpointInfo.qrCodeData, let _=qrCodeAdvertisingToken{
-#if DEBUG
-			print("Device has QR data: \(qrData.base64EncodedString()), our advertising token is \(qrCodeAdvertisingToken!.base64EncodedString())")
-#endif
 			if qrData==qrCodeAdvertisingToken!{
 				if let deviceInfo=deviceInfo{
 					for delegate in shareExtensionDelegates{
@@ -437,17 +468,19 @@ public class NearbyConnectionManager : NSObject, NetServiceDelegate, InboundNear
 		qrCodeData=nil
 	}
 	
-	public func startOutgoingTransfer(deviceID:String, delegate:ShareExtensionDelegate, urls:[URL]){
-		guard let info=foundServices[deviceID] else {return}
+	@discardableResult
+	public func startOutgoingTransfer(deviceID:String, delegate:ShareExtensionDelegate, urls:[URL])->Bool{
+		guard let info=foundServices[deviceID], let device=info.device else {return false}
 		let tcp=NWProtocolTCP.Options.init()
 		tcp.noDelay=true
 		let nwconn=NWConnection(to: info.service.endpoint, using: NWParameters(tls: .none, tcp: tcp))
 		let conn=OutboundNearbyConnection(connection: nwconn, id: deviceID, urlsToSend: urls)
 		conn.delegate=self
 		conn.qrCodePrivateKey=qrCodePrivateKey
-		let transfer=OutgoingTransferInfo(service: info.service, device: info.device!, connection: conn, delegate: delegate)
+		let transfer=OutgoingTransferInfo(service: info.service, device: device, connection: conn, delegate: delegate)
 		outgoingTransfers[deviceID]=transfer
 		conn.start()
+		return true
 	}
 	
 	func outboundConnectionWasEstablished(connection: OutboundNearbyConnection) {
@@ -487,4 +520,3 @@ public class NearbyConnectionManager : NSObject, NetServiceDelegate, InboundNear
 		outgoingTransfers.removeValue(forKey: connection.id)
 	}
 }
-

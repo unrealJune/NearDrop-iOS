@@ -9,7 +9,6 @@ import Foundation
 import Network
 import CommonCrypto
 import CryptoKit
-import System
 
 import SwiftECC
 import BigInt
@@ -338,7 +337,7 @@ class NearbyConnection{
 	}
 	
 	internal static func hkdf(inputKeyMaterial:SymmetricKey, salt:Data, info:Data, outputByteCount:Int) -> SymmetricKey{
-		if #available(macOS 11.0, *){
+		if #available(macOS 11.0, iOS 14.0, *){
 			return HKDF<SHA256>.deriveKey(inputKeyMaterial: inputKeyMaterial, salt: salt, info: info, outputByteCount: outputByteCount)
 		}else{
 			return SymmetricKey(data: hkdfExpand(prk: hkdfExtract(salt: salt, ikm: inputKeyMaterial.data()), info: info, length: outputByteCount))

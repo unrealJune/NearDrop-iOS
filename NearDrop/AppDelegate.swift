@@ -41,6 +41,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
 		let errorsCategory=UNNotificationCategory(identifier: "ERRORS", actions: [], intentIdentifiers: [])
 		nc.setNotificationCategories([incomingTransfersCategory, errorsCategory])
 		NearbyConnectionManager.shared.mainAppDelegate=self
+		NearbyConnectionManager.shared.receivedContentHandler=self
 		NearbyConnectionManager.shared.becomeVisible()
 	}
 	
@@ -131,6 +132,21 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
 		}
 		UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: ["transfer_"+id])
 		self.activeIncomingTransfers.removeValue(forKey: id)
+	}
+
+	func incomingTransfer(id: String, progress: Double) {}
+}
+
+extension AppDelegate:ReceivedContentHandler{
+	func destinationURL(for file:FileMetadata) throws -> URL{
+		let downloadsDirectory=try FileManager.default.url(for: .downloadsDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+		return downloadsDirectory.appendingPathComponent(file.name)
+	}
+
+	func didReceiveFile(at url:URL, from device:RemoteDeviceInfo){}
+
+	func didReceiveURL(_ url:URL, from device:RemoteDeviceInfo){
+		NSWorkspace.shared.open(url)
 	}
 }
 

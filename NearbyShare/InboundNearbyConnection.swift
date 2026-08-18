@@ -9,8 +9,6 @@ import Foundation
 import Network
 import CryptoKit
 import CommonCrypto
-import System
-import AppKit
 
 import SwiftECC
 import BigInt
@@ -20,6 +18,9 @@ class InboundNearbyConnection: NearbyConnection{
 	private var currentState:State = .initial
 	public var delegate:InboundNearbyConnectionDelegate?
 	private var cipherCommitment:Data?
+	weak var receivedContentHandler:(any ReceivedContentHandler)?
+	private var totalBytesToReceive:Int64=0
+	private var totalBytesReceived:Int64=0
 	
 	private var textPayloadID:Int64=0
 	
@@ -105,11 +106,20 @@ class InboundNearbyConnection: NearbyConnection{
 		if frame.payloadChunk.body.count>0{
 			fileInfo.fileHandle?.write(frame.payloadChunk.body)
 			transferredFiles[id]!.bytesTransferred+=Int64(frame.payloadChunk.body.count)
+			totalBytesReceived+=Int64(frame.payloadChunk.body.count)
 			fileInfo.progress?.completedUnitCount=transferredFiles[id]!.bytesTransferred
+			if totalBytesToReceive>0{
+				delegate?.inboundConnection(self, transferProgress: Double(totalBytesReceived)/Double(totalBytesToReceive))
+			}
 		}else if (frame.payloadChunk.flags & 1)==1{
 			try fileInfo.fileHandle?.close()
 			transferredFiles[id]!.fileHandle=nil
+			#if os(macOS)
 			fileInfo.progress?.unpublish()
+			#endif
+			if let device=remoteDeviceInfo{
+				receivedContentHandler?.didReceiveFile(at: fileInfo.destinationURL, from: device)
+			}
 			transferredFiles.removeValue(forKey: id)
 			if transferredFiles.isEmpty{
 				try sendDisconnectionAndDisconnect()
@@ -120,17 +130,25 @@ class InboundNearbyConnection: NearbyConnection{
 	override func processBytesPayload(payload: Data, id: Int64) throws -> Bool {
 		if id==textPayloadID{
 			if let urlStr=String(data: payload, encoding: .utf8), let url=URL(string: urlStr){
-				NSWorkspace.shared.open(url)
+				if let device=remoteDeviceInfo{
+					receivedContentHandler?.didReceiveURL(url, from: device)
+				}
 			}
 			try sendDisconnectionAndDisconnect()
 			return true
 		}else if let fileInfo=transferredFiles[id]{
 			fileInfo.fileHandle?.write(payload)
 			transferredFiles[id]!.bytesTransferred+=Int64(payload.count)
+			totalBytesReceived+=Int64(payload.count)
 			fileInfo.progress?.completedUnitCount=transferredFiles[id]!.bytesTransferred
 			try fileInfo.fileHandle?.close()
 			transferredFiles[id]!.fileHandle=nil
+			#if os(macOS)
 			fileInfo.progress?.unpublish()
+			#endif
+			if let device=remoteDeviceInfo{
+				receivedContentHandler?.didReceiveFile(at: fileInfo.destinationURL, from: device)
+			}
 			transferredFiles.removeValue(forKey: id)
 			try sendDisconnectionAndDisconnect()
 			return true
@@ -298,18 +316,49 @@ class InboundNearbyConnection: NearbyConnection{
 		}
 		return dest
 	}
+
+	private func defaultDestinationURL(fileName:String) throws -> URL{
+		#if os(macOS)
+		let directory=try FileManager.default.url(for: .downloadsDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+		#else
+		let directory=try FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+		#endif
+		return directory.resolvingSymlinksInPath().appendingPathComponent(fileName)
+	}
+
+	private func sanitizeFileName(_ name:String)->String{
+		let normalized=name.replacingOccurrences(of: "\\", with: "/")
+		let baseName=normalized.split(separator: "/").last.map(String.init) ?? ""
+		let cleaned=baseName.replacingOccurrences(
+			of: "[\\x00-\\x1F\\x7F/\\\\?%\\*:\\|\"<>=]",
+			with: "_",
+			options: .regularExpression
+		)
+		if cleaned.isEmpty || cleaned=="." || cleaned==".."{
+			return "Received file"
+		}
+		return cleaned
+	}
 	
 	private func processIntroductionFrame(_ frame:Sharing_Nearby_Frame) throws{
 		guard frame.hasV1, frame.v1.hasIntroduction else { throw NearbyError.requiredFieldMissing("shareNearbyFrame.v1.introduction") }
 		currentState = .waitingForUserConsent
 		if frame.v1.introduction.fileMetadata.count>0 && frame.v1.introduction.textMetadata.isEmpty{
-			let downloadsDirectory=(try FileManager.default.url(for: .downloadsDirectory, in: .userDomainMask, appropriateFor: nil, create: true)).resolvingSymlinksInPath()
 			for file in frame.v1.introduction.fileMetadata{
-				let dest=makeFileDestinationURL(downloadsDirectory.appendingPathComponent(file.name))
-				let info=InternalFileInfo(meta: FileMetadata(name: file.name, size: file.size, mimeType: file.mimeType),
+				guard file.size>=0 else {throw NearbyError.protocolError("File size must not be negative")}
+				let metadata=FileMetadata(name: sanitizeFileName(file.name), size: file.size, mimeType: file.mimeType)
+				let destination:URL
+				if let handler=receivedContentHandler{
+					destination=try handler.destinationURL(for: metadata)
+				}else{
+					destination=try defaultDestinationURL(fileName: file.name)
+				}
+				let dest=makeFileDestinationURL(destination)
+				let info=InternalFileInfo(meta: metadata,
 										  payloadID: file.payloadID,
 										  destinationURL: dest)
 				transferredFiles[file.payloadID]=info
+				totalBytesToReceive+=file.size
 			}
 			let metadata=TransferMetadata(files: transferredFiles.map({$0.value.meta}), id: id, pinCode: pinCode)
 			DispatchQueue.main.async {
@@ -324,14 +373,21 @@ class InboundNearbyConnection: NearbyConnection{
 					self.delegate?.obtainUserConsent(for: metadata, from: self.remoteDeviceInfo!, connection: self)
 				}
 			}else if case .text=meta.type{
-				let downloadsDirectory=(try FileManager.default.url(for: .downloadsDirectory, in: .userDomainMask, appropriateFor: nil, create: true)).resolvingSymlinksInPath()
 				let dateFormatter=DateFormatter()
 				dateFormatter.dateFormat="yyyy-MM-dd HH.mm.ss"
-				let dest=makeFileDestinationURL(downloadsDirectory.appendingPathComponent("\(dateFormatter.string(from: Date())).txt"))
+				let metadata=FileMetadata(name: "\(dateFormatter.string(from: Date())).txt", size: meta.size, mimeType: "text/plain")
+				let destination:URL
+				if let handler=receivedContentHandler{
+					destination=try handler.destinationURL(for: metadata)
+				}else{
+					destination=try defaultDestinationURL(fileName: metadata.name)
+				}
+				let dest=makeFileDestinationURL(destination)
 				let info=InternalFileInfo(meta: FileMetadata(name: dest.lastPathComponent, size: meta.size, mimeType: "text/plain"),
 										  payloadID: meta.payloadID,
 										  destinationURL: dest)
 				transferredFiles[meta.payloadID]=info
+				totalBytesToReceive=meta.size
 				DispatchQueue.main.async {
 					self.delegate?.obtainUserConsent(for: TransferMetadata(files: [info.meta], id: self.id, pinCode: self.pinCode), from: self.remoteDeviceInfo!, connection: self)
 				}
@@ -364,7 +420,9 @@ class InboundNearbyConnection: NearbyConnection{
 				progress.totalUnitCount=file.meta.size
 				progress.kind = .file
 				progress.isPausable=false
+				#if os(macOS)
 				progress.publish()
+				#endif
 				transferredFiles[id]!.progress=progress
 				transferredFiles[id]!.created=true
 			}
@@ -405,5 +463,6 @@ class InboundNearbyConnection: NearbyConnection{
 
 protocol InboundNearbyConnectionDelegate{
 	func obtainUserConsent(for transfer:TransferMetadata, from device:RemoteDeviceInfo, connection:InboundNearbyConnection)
+	func inboundConnection(_ connection:InboundNearbyConnection, transferProgress:Double)
 	func connectionWasTerminated(connection:InboundNearbyConnection, error:Error?)
 }

@@ -1,0 +1,66 @@
+name: NearDrop-iOS
+options:
+  bundleIdPrefix: com.junephilip
+  deploymentTarget:
+    iOS: "16.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    CURRENT_PROJECT_VERSION: 1
+    MARKETING_VERSION: 0.1.0
+packages:
+  SwiftProtobuf:
+    url: https://github.com/apple/swift-protobuf.git
+    from: 1.27.0
+  SwiftECC:
+    url: https://github.com/leif-ibsen/SwiftECC.git
+    from: 3.0.0
+targets:
+  NearbyShareCore:
+    type: framework
+    platform: iOS
+    sources:
+      - path: NearbyShare
+        excludes:
+          - ProtobufSource
+    dependencies:
+      - package: SwiftProtobuf
+      - package: SwiftECC
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.junephilip.NearDrop.NearbyShareCore
+        SKIP_INSTALL: true
+  NearDrop-iOS:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources/NearDropApp
+      - path: Sources/SharedUI
+    dependencies:
+      - target: NearbyShareCore
+      - target: NearDropShareExtension
+        embed: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.junephilip.NearDrop
+        PRODUCT_NAME: NearDrop
+        CODE_SIGN_ENTITLEMENTS: Sources/NearDropApp/NearDrop.entitlements
+        INFOPLIST_FILE: Sources/NearDropApp/Info.plist
+        TARGETED_DEVICE_FAMILY: "1,2"
+  NearDropShareExtension:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: Sources/NearDropShareExtension
+      - path: Sources/SharedUI
+    dependencies:
+      - target: NearbyShareCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.junephilip.NearDrop.ShareExtension
+        PRODUCT_NAME: NearDropShareExtension
+        CODE_SIGN_ENTITLEMENTS: Sources/NearDropShareExtension/NearDropShareExtension.entitlements
+        INFOPLIST_FILE: Sources/NearDropShareExtension/Info.plist
+        SKIP_INSTALL: true
+        TARGETED_DEVICE_FAMILY: "1,2"

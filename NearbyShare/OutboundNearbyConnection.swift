@@ -9,7 +9,6 @@ import Foundation
 import Network
 import CryptoKit
 import CommonCrypto
-import System
 import UniformTypeIdentifiers
 
 import SwiftECC
@@ -139,8 +138,9 @@ class OutboundNearbyConnection:NearbyConnection{
 		frame.v1.type = .connectionRequest
 		frame.v1.connectionRequest=Location_Nearby_Connections_ConnectionRequestFrame()
 		frame.v1.connectionRequest.endpointID=String(bytes: NearbyConnectionManager.shared.endpointID, encoding: .ascii)!
-		frame.v1.connectionRequest.endpointName=Host.current().localizedName!
-		let endpointInfo=EndpointInfo(name: Host.current().localizedName!, deviceType: .computer)
+		let deviceName=NearbyConnectionManager.shared.localDeviceName
+		frame.v1.connectionRequest.endpointName=deviceName
+		let endpointInfo=EndpointInfo(name: deviceName, deviceType: NearbyConnectionManager.shared.localDeviceType)
 		frame.v1.connectionRequest.endpointInfo=endpointInfo.serialize()
 		frame.v1.connectionRequest.mediums=[.wifiLan]
 		sendFrameAsync(try frame.serializedData())
@@ -285,7 +285,7 @@ class OutboundNearbyConnection:NearbyConnection{
 				let typeID=try? url.resourceValues(forKeys: [.typeIdentifierKey]).typeIdentifier
 				meta.mimeType="application/octet-stream"
 				if let typeID=typeID{
-					if #available(macOS 11.0, *){
+					if #available(macOS 11.0, iOS 14.0, *){
 						let type=UTType(typeID)
 						if let type=type, let mimeType=type.preferredMIMEType{
 							meta.mimeType=mimeType
@@ -373,12 +373,12 @@ class OutboundNearbyConnection:NearbyConnection{
 		}
 		
 		let fileBuffer:Data
-		if #available(macOS 10.15.4, *) {
+		if #available(macOS 10.15.4, iOS 13.4, *){
 			guard let _fileBuffer=try currentTransfer!.handle!.read(upToCount: 512*1024) else{
 				throw NearbyError.inputOutput
 			}
 			fileBuffer=_fileBuffer
-		} else {
+		}else{
 			fileBuffer=currentTransfer!.handle!.readData(ofLength: 512*1024)
 		}
 		
