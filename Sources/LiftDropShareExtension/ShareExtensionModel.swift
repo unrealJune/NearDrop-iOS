@@ -98,7 +98,7 @@ final class ShareExtensionModel:NSObject, ObservableObject{
 				}
 			}
 			guard !urls.isEmpty else{
-				fail("Takeoff could not read the shared items.")
+				fail("LiftDrop could not read the shared items.")
 				return
 			}
 			itemCount=urls.count

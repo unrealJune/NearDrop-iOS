@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Renders the Takeoff app icon: a paper plane on a flip-dot board.
+"""Renders the LiftDrop app icon: a paper plane on a flip-dot board.
 
 The board dots use the Shoreline palette and the plane is lit in Amber, with
 the same ordered dithering the in-app DotMatrixDisplay uses. Regenerate with:
@@ -137,7 +137,7 @@ def main():
 
     out = (
         Path(__file__).resolve().parent.parent
-        / "Sources/TakeoffApp/Assets.xcassets/AppIcon.appiconset/icon-1024.png"
+        / "Sources/LiftDropApp/Assets.xcassets/AppIcon.appiconset/icon-1024.png"
     )
     out.parent.mkdir(parents=True, exist_ok=True)
     icon.save(out)

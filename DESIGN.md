@@ -1,4 +1,4 @@
-# NearDrop iOS design
+# LiftDrop iOS design
 
 ## Shape
 

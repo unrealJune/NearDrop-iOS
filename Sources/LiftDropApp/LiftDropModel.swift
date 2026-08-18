@@ -4,7 +4,7 @@ import SwiftUI
 import UIKit
 
 @MainActor
-final class TakeoffModel:NSObject, ObservableObject{
+final class LiftDropModel:NSObject, ObservableObject{
 	enum Phase:Equatable{
 		case ready
 		case connecting(String)
@@ -159,7 +159,7 @@ final class TakeoffModel:NSObject, ObservableObject{
 	}
 }
 
-extension TakeoffModel:MainAppDelegate{
+extension LiftDropModel:MainAppDelegate{
 	nonisolated func obtainUserConsent(for transfer:TransferMetadata, from device:RemoteDeviceInfo){
 		Task{@MainActor in
 			incomingRequest=IncomingRequest(id: transfer.id, device: device, transfer: transfer)
@@ -187,7 +187,7 @@ extension TakeoffModel:MainAppDelegate{
 	}
 }
 
-extension TakeoffModel:ReceivedContentHandler{
+extension LiftDropModel:ReceivedContentHandler{
 	nonisolated func destinationURL(for file:FileMetadata) throws -> URL{
 		let documents=try FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
 		let received=documents.appendingPathComponent("Received", isDirectory: true)
@@ -208,7 +208,7 @@ extension TakeoffModel:ReceivedContentHandler{
 	}
 }
 
-extension TakeoffModel:ShareExtensionDelegate{
+extension LiftDropModel:ShareExtensionDelegate{
 	nonisolated func addDevice(device:RemoteDeviceInfo){
 		Task{@MainActor in
 			guard !devices.contains(where:{$0.id==device.id}) else {return}

@@ -1,8 +1,8 @@
 import SwiftUI
 
 @main
-struct TakeoffApp:App{
-	@StateObject private var model=TakeoffModel()
+struct LiftDropApp:App{
+	@StateObject private var model=LiftDropModel()
 	@Environment(\.scenePhase) private var scenePhase
 	@AppStorage("appearance") private var appearance=AppearanceOption.system
 

@@ -1,0 +1,28 @@
+name: Generate Xcode project
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate project
+        run: xcodegen generate
+      - name: Commit project
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A LiftDrop.xcodeproj
+          if git diff --cached --quiet; then
+            echo "LiftDrop.xcodeproj is already up to date."
+            exit 0
+          fi
+          git commit -m "Regenerate LiftDrop.xcodeproj from project.yml"
+          git push

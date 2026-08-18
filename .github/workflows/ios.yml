@@ -17,8 +17,8 @@ jobs:
       - name: Build
         run: >-
           xcodebuild
-          -project Takeoff.xcodeproj
-          -scheme Takeoff
+          -project LiftDrop.xcodeproj
+          -scheme LiftDrop
           -destination 'generic/platform=iOS Simulator'
           CODE_SIGNING_ALLOWED=NO
           build

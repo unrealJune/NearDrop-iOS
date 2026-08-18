@@ -21,7 +21,7 @@ struct QRCodeSheet:View{
 				VStack(spacing:8){
 					Text("Open Quick Share on Android")
 						.font(.title3.weight(.semibold))
-					Text("Choose “Scan QR code,” then point the camera here. Keep Takeoff open and both devices on the same Wi-Fi.")
+					Text("Choose “Scan QR code,” then point the camera here. Keep LiftDrop open and both devices on the same Wi-Fi.")
 						.font(.body)
 						.foregroundStyle(.secondary)
 						.multilineTextAlignment(.center)

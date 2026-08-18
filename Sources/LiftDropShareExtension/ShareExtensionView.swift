@@ -30,7 +30,7 @@ struct ShareExtensionView:View{
 				.padding(16)
 			}
 			.preferredColorScheme(appearance.colorScheme)
-			.navigationTitle("Takeoff")
+			.navigationTitle("LiftDrop")
 			.navigationBarTitleDisplayMode(.inline)
 			.toolbar{
 				ToolbarItem(placement:.cancellationAction){
