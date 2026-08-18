@@ -9,9 +9,9 @@ func transferErrorDescription(_ error:Error)->String{
 	case .requiredFieldMissing:
 		return "The other device sent an incomplete transfer request."
 	case .ukey2:
-		return "Takeoff could not establish an encrypted connection."
+		return "LiftDrop could not establish an encrypted connection."
 	case .inputOutput:
-		return "Takeoff could not read or write one of the files."
+		return "LiftDrop could not read or write one of the files."
 	case let .canceled(reason):
 		switch reason{
 		case .userRejected:return "The transfer was declined on the other device."

@@ -3,7 +3,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 struct ContentView:View{
-	@EnvironmentObject private var model:TakeoffModel
+	@EnvironmentObject private var model:LiftDropModel
 	@Environment(\.openURL) private var openURL
 	@Environment(\.colorScheme) private var colorScheme
 	@AppStorage("dotPalette") private var paletteID=DotPalette.shoreline.id
@@ -23,7 +23,7 @@ struct ContentView:View{
 						.frame(maxWidth:640)
 				}
 			}
-			.navigationTitle("Takeoff")
+			.navigationTitle("LiftDrop")
 			.navigationBarTitleDisplayMode(.inline)
 			.toolbar{
 				ToolbarItem(placement:.navigationBarTrailing){
@@ -81,7 +81,7 @@ private struct QRItem:Identifiable{
 }
 
 private struct TransferIsland:View{
-	@EnvironmentObject private var model:TakeoffModel
+	@EnvironmentObject private var model:LiftDropModel
 	@Environment(\.colorScheme) private var colorScheme
 	@Binding var importing:Bool
 	let palette:DotPalette
@@ -134,7 +134,7 @@ private struct TransferIsland:View{
 		return ["INCOMING", request.transfer.pinCode ?? ""]
 	}
 
-	private func incomingSummary(_ request:TakeoffModel.IncomingRequest)->some View{
+	private func incomingSummary(_ request:LiftDropModel.IncomingRequest)->some View{
 		HStack(spacing:12){
 			Image(systemName:transferSymbol(request.transfer))
 				.font(.title2)
@@ -156,7 +156,7 @@ private struct TransferIsland:View{
 		.frame(maxWidth:.infinity, alignment:.leading)
 	}
 
-	private func incomingDetail(_ request:TakeoffModel.IncomingRequest)->String{
+	private func incomingDetail(_ request:LiftDropModel.IncomingRequest)->String{
 		let total=request.transfer.files.reduce(Int64(0)){$0+$1.size}
 		guard total>0 else{return "From \(request.device.name)"}
 		return "From \(request.device.name) · \(total.formatted(.byteCount(style:.file)))"
@@ -187,7 +187,7 @@ private struct TransferIsland:View{
 				transferState(icon:"number.square", title:"Check \(name)", detail:"Confirm that both devices show \(pin).")
 			case let .transferring(name, progress):
 				VStack(spacing:18){
-					transferState(icon:"arrow.left.arrow.right", title:name, detail:"Keep both devices awake and Takeoff open.")
+					transferState(icon:"arrow.left.arrow.right", title:name, detail:"Keep both devices awake and LiftDrop open.")
 					ProgressView(value:progress)
 						.tint(accent)
 						.accessibilityLabel("Transfer progress")
@@ -272,7 +272,7 @@ private struct TransferIsland:View{
 		.frame(maxWidth:.infinity, alignment:.leading)
 	}
 
-	private func incoming(_ request:TakeoffModel.IncomingRequest)->some View{
+	private func incoming(_ request:LiftDropModel.IncomingRequest)->some View{
 		HStack(spacing:14){
 			DotMatrixChoice(grid:.cross, tint:.orange, label:"Decline", action:model.declineIncoming)
 			DotMatrixChoice(grid:.check, tint:.green, label:"Accept", action:model.acceptIncoming)

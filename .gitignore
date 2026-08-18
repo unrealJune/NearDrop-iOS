@@ -1,6 +1,6 @@
 DerivedData/
 .DS_Store
 xcuserdata/
-Takeoff.xcodeproj/
+LiftDrop.xcodeproj/xcuserdata/
 build/
 __pycache__/

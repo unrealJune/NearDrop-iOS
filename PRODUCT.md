@@ -1,8 +1,8 @@
-# NearDrop for iOS
+# LiftDrop for iOS
 
 ## Product
 
-NearDrop moves files and links between Android and iPhone or iPad on the same
+LiftDrop moves files and links between Android and iPhone or iPad on the same
 Wi-Fi network, without accounts or cloud uploads.
 
 The first release is for general App Store users who regularly cross the
@@ -24,7 +24,7 @@ broken.
 
 ## Core flow
 
-1. Open NearDrop to become available on the local network.
+1. Open LiftDrop to become available on the local network.
 2. Choose files or a link, then select a discovered Android device.
 3. If the Android receiver is not visible, show a Quick Share QR code.
 4. Verify the four-digit code, accept on the receiving device, and watch
