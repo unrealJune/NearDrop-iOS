@@ -232,7 +232,7 @@ extension LiftDropModel:ShareExtensionDelegate{
 
 	nonisolated func connectionWasEstablished(pinCode:String){
 		Task{@MainActor in
-			phase = .awaitingApproval(selectedDevice?.name ?? "Android device", pin: pinCode)
+			phase = .awaitingApproval(selectedDevice?.name ?? "Nearby device", pin: pinCode)
 		}
 	}
 
@@ -245,19 +245,19 @@ extension LiftDropModel:ShareExtensionDelegate{
 
 	nonisolated func transferAccepted(){
 		Task{@MainActor in
-			phase = .transferring(selectedDevice?.name ?? "Android device", progress: 0)
+			phase = .transferring(selectedDevice?.name ?? "Nearby device", progress: 0)
 		}
 	}
 
 	nonisolated func transferProgress(progress:Double){
 		Task{@MainActor in
-			phase = .transferring(selectedDevice?.name ?? "Android device", progress: progress)
+			phase = .transferring(selectedDevice?.name ?? "Nearby device", progress: progress)
 		}
 	}
 
 	nonisolated func transferFinished(){
 		Task{@MainActor in
-			let name=selectedDevice?.name ?? "Android device"
+			let name=selectedDevice?.name ?? "Nearby device"
 			finishSending()
 			phase = .complete("Sent to \(name)")
 		}

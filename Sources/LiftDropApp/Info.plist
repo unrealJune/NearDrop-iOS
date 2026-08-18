@@ -31,7 +31,7 @@
 		<string>_FC9F5ED42C8A._tcp</string>
 	</array>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>LiftDrop uses your local network to find Android devices and transfer files directly.</string>
+	<string>LiftDrop uses your local network to find nearby devices and transfer files directly.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIFileSharingEnabled</key>

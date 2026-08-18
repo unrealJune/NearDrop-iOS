@@ -218,7 +218,7 @@ private struct TransferIsland:View{
 				Label{
 					VStack(alignment:.leading, spacing:4){
 						Text(selectionTitle).font(.headline)
-						Text("Choose a nearby Android device.").font(.subheadline).foregroundStyle(.secondary)
+						Text("Choose a nearby device.").font(.subheadline).foregroundStyle(.secondary)
 					}
 				} icon:{
 					Image(systemName:"doc.on.doc")
