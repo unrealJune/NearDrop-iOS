@@ -21,7 +21,7 @@ struct QRCodeSheet:View{
 				VStack(spacing:8){
 					Text("Open Quick Share on Android")
 						.font(.title3.weight(.semibold))
-					Text("Choose “Scan QR code,” then point the camera here. Keep NearDrop open and both devices on the same Wi-Fi.")
+					Text("Choose “Scan QR code,” then point the camera here. Keep Takeoff open and both devices on the same Wi-Fi.")
 						.font(.body)
 						.foregroundStyle(.secondary)
 						.multilineTextAlignment(.center)
@@ -42,7 +42,7 @@ struct QRCodeSheet:View{
 	private var qrImage:Image{
 		let filter=CIFilter.qrCodeGenerator()
 		filter.message=Data(url.absoluteString.utf8)
-		filter.correctionLevel="M"
+		filter.correctionLevel="L"
 		let context=CIContext()
 		guard let output=filter.outputImage,
 			  let cgImage=context.createCGImage(output.transformed(by:CGAffineTransform(scaleX:12, y:12)), from:output.extent) else{

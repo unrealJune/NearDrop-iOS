@@ -116,7 +116,7 @@ struct EndpointInfo{
 	}
 	
 	init?(data:Data){
-		guard data.count>17 else {return nil}
+		guard data.count>=17 else {return nil}
 		let hasName=(data[0] & 0x10)==0
 		let deviceNameLength:Int
 		let deviceName:String?
@@ -129,7 +129,8 @@ struct EndpointInfo{
 			deviceNameLength=0
 			deviceName=nil
 		}
-		let rawDeviceType:Int=Int(data[0] & 7) >> 1
+		// Bit layout: 3 bits version, 1 bit visibility, 3 bits device type, 1 reserved.
+		let rawDeviceType:Int=Int(data[0] & 0x0E) >> 1
 		self.name=deviceName
 		self.deviceType=RemoteDeviceInfo.DeviceType.fromRawValue(value: rawDeviceType)
 		var offset=1+16

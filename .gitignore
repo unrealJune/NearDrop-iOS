@@ -1,4 +1,5 @@
 DerivedData/
 .DS_Store
 xcuserdata/
-NearDrop-iOS.xcodeproj/
+Takeoff.xcodeproj/
+build/

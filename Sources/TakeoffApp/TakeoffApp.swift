@@ -1,14 +1,16 @@
 import SwiftUI
 
 @main
-struct NearDropApp:App{
-	@StateObject private var model=NearDropModel()
+struct TakeoffApp:App{
+	@StateObject private var model=TakeoffModel()
 	@Environment(\.scenePhase) private var scenePhase
+	@AppStorage("appearance") private var appearance=AppearanceOption.system
 
 	var body:some Scene{
 		WindowGroup{
 			ContentView()
 				.environmentObject(model)
+				.preferredColorScheme(appearance.colorScheme)
 		}
 		.onChange(of: scenePhase){ phase in
 			switch phase{

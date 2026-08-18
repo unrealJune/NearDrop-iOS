@@ -226,7 +226,7 @@ class NearbyConnection{
 		
 		transfer.payloadChunk.flags=1 // .lastChunk
 		transfer.payloadChunk.offset=Int64(transfer.payloadChunk.body.count)
-		transfer.payloadChunk.clearBody()
+		transfer.payloadChunk.body=Data() // present but empty, as Android sends it
 		wrapper.v1.payloadTransfer=transfer
 		try encryptAndSendOfflineFrame(wrapper)
 	}

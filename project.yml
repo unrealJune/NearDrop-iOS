@@ -1,4 +1,4 @@
-name: NearDrop-iOS
+name: Takeoff
 options:
   bundleIdPrefix: com.junephilip
   deploymentTarget:
@@ -24,43 +24,45 @@ targets:
       - path: NearbyShare
         excludes:
           - ProtobufSource
+          - GenerateProtobuf.sh
     dependencies:
       - package: SwiftProtobuf
       - package: SwiftECC
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.junephilip.NearDrop.NearbyShareCore
+        PRODUCT_BUNDLE_IDENTIFIER: com.junephilip.Takeoff.NearbyShareCore
         SKIP_INSTALL: true
-  NearDrop-iOS:
+        GENERATE_INFOPLIST_FILE: true
+  Takeoff:
     type: application
     platform: iOS
     sources:
-      - path: Sources/NearDropApp
+      - path: Sources/TakeoffApp
       - path: Sources/SharedUI
     dependencies:
       - target: NearbyShareCore
-      - target: NearDropShareExtension
+      - target: TakeoffShareExtension
         embed: true
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.junephilip.NearDrop
-        PRODUCT_NAME: NearDrop
-        CODE_SIGN_ENTITLEMENTS: Sources/NearDropApp/NearDrop.entitlements
-        INFOPLIST_FILE: Sources/NearDropApp/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.junephilip.Takeoff
+        PRODUCT_NAME: Takeoff
+        CODE_SIGN_ENTITLEMENTS: Sources/TakeoffApp/Takeoff.entitlements
+        INFOPLIST_FILE: Sources/TakeoffApp/Info.plist
         TARGETED_DEVICE_FAMILY: "1,2"
-  NearDropShareExtension:
+  TakeoffShareExtension:
     type: app-extension
     platform: iOS
     sources:
-      - path: Sources/NearDropShareExtension
+      - path: Sources/TakeoffShareExtension
       - path: Sources/SharedUI
     dependencies:
       - target: NearbyShareCore
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.junephilip.NearDrop.ShareExtension
-        PRODUCT_NAME: NearDropShareExtension
-        CODE_SIGN_ENTITLEMENTS: Sources/NearDropShareExtension/NearDropShareExtension.entitlements
-        INFOPLIST_FILE: Sources/NearDropShareExtension/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.junephilip.Takeoff.ShareExtension
+        PRODUCT_NAME: TakeoffShareExtension
+        CODE_SIGN_ENTITLEMENTS: Sources/TakeoffShareExtension/TakeoffShareExtension.entitlements
+        INFOPLIST_FILE: Sources/TakeoffShareExtension/Info.plist
         SKIP_INSTALL: true
         TARGETED_DEVICE_FAMILY: "1,2"

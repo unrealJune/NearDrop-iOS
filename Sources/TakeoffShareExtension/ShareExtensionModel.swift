@@ -26,6 +26,7 @@ final class ShareExtensionModel:NSObject, ObservableObject{
 	private var urls:[URL]=[]
 	private var selectedDevice:RemoteDeviceInfo?
 	private var discoveryRunning=false
+	private var qrCodeTransferPending=false
 
 	init(extensionContext:NSExtensionContext?){
 		self.extensionContext=extensionContext
@@ -58,12 +59,16 @@ final class ShareExtensionModel:NSObject, ObservableObject{
 	}
 
 	func showQRCode(){
+		qrCodeTransferPending=false
 		let key=manager.generateQrCodeKey()
 		qrCodeURL=URL(string:"https://quickshare.google/qrcode#key=\(key)")
 	}
 
+	/// Only drops the key when the user walks away from the sheet. A scan hands
+	/// the key to the outgoing connection, which needs it to sign the handshake.
 	func dismissQRCode(){
 		qrCodeURL=nil
+		guard !qrCodeTransferPending else {return}
 		manager.clearQrCodeKey()
 	}
 
@@ -93,7 +98,7 @@ final class ShareExtensionModel:NSObject, ObservableObject{
 				}
 			}
 			guard !urls.isEmpty else{
-				fail("NearDrop could not read the shared items.")
+				fail("Takeoff could not read the shared items.")
 				return
 			}
 			itemCount=urls.count
@@ -120,6 +125,8 @@ final class ShareExtensionModel:NSObject, ObservableObject{
 			manager.stopDeviceDiscovery()
 			discoveryRunning=false
 		}
+		qrCodeTransferPending=false
+		manager.clearQrCodeKey()
 	}
 }
 
@@ -137,7 +144,8 @@ extension ShareExtensionModel:ShareExtensionDelegate{
 
 	nonisolated func startTransferWithQrCode(device:RemoteDeviceInfo){
 		Task{@MainActor in
-			dismissQRCode()
+			qrCodeTransferPending=true
+			qrCodeURL=nil
 			send(to:device)
 		}
 	}
