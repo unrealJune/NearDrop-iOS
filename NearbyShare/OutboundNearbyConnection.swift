@@ -25,9 +25,17 @@ class OutboundNearbyConnection:NearbyConnection{
 	private var totalBytesSent:Int64=0
 	private var cancelled:Bool=false
 	private var textPayloadID:Int64=0
+	private var transferFinished=false
+
+	/// Payload IDs must be positive: Quick Share on Windows stores each incoming
+	/// payload in a temporary file named after its ID, and a negative ID yields a
+	/// name starting with "-" that it then fails to finalise.
+	private static func makePayloadID()->Int64{
+		Int64.random(in: 1...Int64.max)
+	}
 	
 	public var qrCodePrivateKey:ECPrivateKey?
-	
+
 	enum State{
 		case initial, sentUkeyClientInit, sentUkeyClientFinish, sentPairedKeyEncryption, sentPairedKeyResult, sentIntroduction, sendingFiles
 	}
@@ -36,7 +44,7 @@ class OutboundNearbyConnection:NearbyConnection{
 		self.urlsToSend=urlsToSend
 		super.init(connection: connection, id: id)
 		if urlsToSend.count==1 && !urlsToSend[0].isFileURL{
-			textPayloadID=Int64.random(in: Int64.min...Int64.max)
+			textPayloadID=OutboundNearbyConnection.makePayloadID()
 		}
 	}
 	
@@ -139,7 +147,7 @@ class OutboundNearbyConnection:NearbyConnection{
 		frame.v1.connectionRequest=Location_Nearby_Connections_ConnectionRequestFrame()
 		frame.v1.connectionRequest.endpointID=String(bytes: NearbyConnectionManager.shared.endpointID, encoding: .ascii)!
 		let deviceName=NearbyConnectionManager.shared.localDeviceName
-		frame.v1.connectionRequest.endpointName=deviceName
+		frame.v1.connectionRequest.endpointName=Data(deviceName.utf8)
 		let endpointInfo=EndpointInfo(name: deviceName, deviceType: NearbyConnectionManager.shared.localDeviceType)
 		frame.v1.connectionRequest.endpointInfo=endpointInfo.serialize()
 		frame.v1.connectionRequest.mediums=[.wifiLan]
@@ -284,17 +292,8 @@ class OutboundNearbyConnection:NearbyConnection{
 				meta.size=(attrs[FileAttributeKey.size] as! NSNumber).int64Value
 				let typeID=try? url.resourceValues(forKeys: [.typeIdentifierKey]).typeIdentifier
 				meta.mimeType="application/octet-stream"
-				if let typeID=typeID{
-					if #available(macOS 11.0, iOS 14.0, *){
-						let type=UTType(typeID)
-						if let type=type, let mimeType=type.preferredMIMEType{
-							meta.mimeType=mimeType
-						}
-					}else{
-						if let mimeType=UTTypeCopyPreferredTagWithClass(typeID as CFString, kUTTagClassMIMEType){
-							meta.mimeType=(mimeType.takeRetainedValue() as NSString) as String
-						}
-					}
+				if let typeID=typeID, let mimeType=UTType(typeID)?.preferredMIMEType{
+					meta.mimeType=mimeType
 				}
 				if meta.mimeType.starts(with: "image/"){
 					meta.type = .image
@@ -307,8 +306,8 @@ class OutboundNearbyConnection:NearbyConnection{
 				}else{
 					meta.type = .unknown
 				}
-				meta.payloadID=Int64.random(in: Int64.min...Int64.max)
-				queue.append(OutgoingFileTransfer(url: url, payloadID: meta.payloadID, handle: try FileHandle(forReadingFrom: url), totalBytes: meta.size, currentOffset: 0))
+				meta.payloadID=OutboundNearbyConnection.makePayloadID()
+				queue.append(OutgoingFileTransfer(url: url, payloadID: meta.payloadID, fileName: meta.name, handle: try FileHandle(forReadingFrom: url), totalBytes: meta.size, currentOffset: 0))
 				introduction.v1.introduction.fileMetadata.append(meta)
 				totalBytesToSend+=meta.size
 			}
@@ -349,8 +348,23 @@ class OutboundNearbyConnection:NearbyConnection{
 	
 	private func sendURL() throws{
 		try sendBytesPayload(data: Data(urlsToSend[0].absoluteString.utf8), id: textPayloadID)
+		finishSending()
+	}
+
+	/// Ordering is guaranteed by the send-completion chain, so the end-of-file
+	/// marker is already on the wire by the time this runs. Both reference
+	/// implementations disconnect as soon as every payload is done.
+	private func finishSending(){
+		guard !transferFinished else {return}
+		transferFinished=true
 		delegate?.outboundConnectionTransferFinished(connection: self)
-		try sendDisconnectionAndDisconnect()
+		try? sendDisconnectionAndDisconnect()
+	}
+
+	override func handleConnectionClosure() {
+		super.handleConnectionClosure()
+		guard !transferFinished, !cancelled else {return}
+		delegate?.outboundConnection(connection: self, failedWithError: lastError ?? NearbyError.canceled(reason: .userCanceled))
 	}
 	
 	private func sendNextFileChunk() throws{
@@ -363,10 +377,9 @@ class OutboundNearbyConnection:NearbyConnection{
 			}
 			if queue.isEmpty{
 				#if DEBUG
-				print("Disconnecting because all files have been transferred")
+				print("All files have been transferred, waiting for the receiver to finish")
 				#endif
-				try sendDisconnectionAndDisconnect()
-				delegate?.outboundConnectionTransferFinished(connection: self)
+				finishSending()
 				return
 			}
 			currentTransfer=queue.removeFirst()
@@ -391,8 +404,53 @@ class OutboundNearbyConnection:NearbyConnection{
 		transfer.payloadHeader.type = .file
 		transfer.payloadHeader.totalSize=Int64(currentTransfer!.totalBytes)
 		transfer.payloadHeader.isSensitive=false
+		// Quick Share on Windows buffers each payload under this name. Without it
+		// the file is left named after the payload ID and never finalised.
+		transfer.payloadHeader.fileName=currentTransfer!.fileName
 		currentTransfer!.currentOffset+=Int64(fileBuffer.count)
 		
+		var wrapper=Location_Nearby_Connections_OfflineFrame()
+		wrapper.version = .v1
+		wrapper.v1=Location_Nearby_Connections_V1Frame()
+		wrapper.v1.type = .payloadTransfer
+		wrapper.v1.payloadTransfer=transfer
+		let isLastChunk=currentTransfer!.currentOffset==currentTransfer!.totalBytes
+		// Chain the next frame off this one's completion so the end-of-file marker
+		// is guaranteed to reach the wire before anything that follows it.
+		try encryptAndSendOfflineFrame(wrapper, completion: {
+			do{
+				if isLastChunk{
+					try self.sendEndOfFile()
+				}else{
+					try self.sendNextFileChunk()
+				}
+			}catch{
+				self.lastError=error
+				self.protocolError()
+			}
+		})
+		#if DEBUG
+		print("sent file chunk, current transfer: \(String(describing: currentTransfer))")
+		#endif
+		totalBytesSent+=Int64(fileBuffer.count)
+		delegate?.outboundConnection(connection: self, transferProgress: Double(totalBytesSent)/Double(totalBytesToSend))
+	}
+
+	/// Signals end of payload: same header as the data chunks, the LAST_CHUNK flag
+	/// and an empty (but present) body.
+	private func sendEndOfFile() throws{
+		guard let transferInfo=currentTransfer else {return}
+		var transfer=Location_Nearby_Connections_PayloadTransferFrame()
+		transfer.packetType = .data
+		transfer.payloadChunk.offset=transferInfo.currentOffset
+		transfer.payloadChunk.flags=1
+		transfer.payloadChunk.body=Data()
+		transfer.payloadHeader.id=transferInfo.payloadID
+		transfer.payloadHeader.type = .file
+		transfer.payloadHeader.totalSize=Int64(transferInfo.totalBytes)
+		transfer.payloadHeader.isSensitive=false
+		transfer.payloadHeader.fileName=transferInfo.fileName
+
 		var wrapper=Location_Nearby_Connections_OfflineFrame()
 		wrapper.version = .v1
 		wrapper.v1=Location_Nearby_Connections_V1Frame()
@@ -407,32 +465,8 @@ class OutboundNearbyConnection:NearbyConnection{
 			}
 		})
 		#if DEBUG
-		print("sent file chunk, current transfer: \(String(describing: currentTransfer))")
+		print("sent EOF, current transfer: \(String(describing: currentTransfer))")
 		#endif
-		totalBytesSent+=Int64(fileBuffer.count)
-		delegate?.outboundConnection(connection: self, transferProgress: Double(totalBytesSent)/Double(totalBytesToSend))
-		
-		if currentTransfer!.currentOffset==currentTransfer!.totalBytes{
-			// Signal end of file (yes, all this for one bit)
-			var transfer=Location_Nearby_Connections_PayloadTransferFrame()
-			transfer.packetType = .data
-			transfer.payloadChunk.offset=currentTransfer!.currentOffset
-			transfer.payloadChunk.flags=1 // <- this one here
-			transfer.payloadHeader.id=currentTransfer!.payloadID
-			transfer.payloadHeader.type = .file
-			transfer.payloadHeader.totalSize=Int64(currentTransfer!.totalBytes)
-			transfer.payloadHeader.isSensitive=false
-			
-			var wrapper=Location_Nearby_Connections_OfflineFrame()
-			wrapper.version = .v1
-			wrapper.v1=Location_Nearby_Connections_V1Frame()
-			wrapper.v1.type = .payloadTransfer
-			wrapper.v1.payloadTransfer=transfer
-			try encryptAndSendOfflineFrame(wrapper)
-			#if DEBUG
-			print("sent EOF, current transfer: \(String(describing: currentTransfer))")
-			#endif
-		}
 	}
 	
 	private static func sanitizeFileName(name:String)->String{
@@ -443,6 +477,7 @@ class OutboundNearbyConnection:NearbyConnection{
 fileprivate struct OutgoingFileTransfer{
 	let url:URL
 	let payloadID:Int64
+	let fileName:String
 	let handle:FileHandle?
 	let totalBytes:Int64
 	var currentOffset:Int64

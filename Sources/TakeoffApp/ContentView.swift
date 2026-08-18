@@ -3,23 +3,33 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 struct ContentView:View{
-	@EnvironmentObject private var model:NearDropModel
+	@EnvironmentObject private var model:TakeoffModel
 	@Environment(\.openURL) private var openURL
+	@Environment(\.colorScheme) private var colorScheme
+	@AppStorage("dotPalette") private var paletteID=DotPalette.shoreline.id
+	@AppStorage("appearance") private var appearance=AppearanceOption.system
 	@State private var importing=false
+
+	private var palette:DotPalette{.named(paletteID)}
 
 	var body:some View{
 		NavigationStack{
 			ZStack{
-				SignalBackground()
+				SignalBackground(palette:palette)
 				.overlay(alignment:.center){
-					TransferIsland(importing:$importing)
+					TransferIsland(importing:$importing, palette:palette)
 						.environmentObject(model)
 						.padding(.horizontal,16)
 						.frame(maxWidth:640)
 				}
 			}
-			.navigationTitle("NearDrop")
+			.navigationTitle("Takeoff")
 			.navigationBarTitleDisplayMode(.inline)
+			.toolbar{
+				ToolbarItem(placement:.navigationBarTrailing){
+					settingsMenu
+				}
+			}
 			.fileImporter(
 				isPresented:$importing,
 				allowedContentTypes:[.item],
@@ -44,6 +54,25 @@ struct ContentView:View{
 			}
 		}
 	}
+
+	private var settingsMenu:some View{
+		Menu{
+			Picker("Palette", selection:$paletteID){
+				ForEach(DotPalette.all){ option in
+					Text(option.name).tag(option.id)
+				}
+			}
+			Picker("Appearance", selection:$appearance){
+				ForEach(AppearanceOption.allCases){ option in
+					Text(option.name).tag(option)
+				}
+			}
+		} label:{
+			Image(systemName:"paintpalette")
+		}
+		.tint(palette.accent(for:colorScheme))
+		.accessibilityLabel("Display settings")
+	}
 }
 
 private struct QRItem:Identifiable{
@@ -52,8 +81,12 @@ private struct QRItem:Identifiable{
 }
 
 private struct TransferIsland:View{
-	@EnvironmentObject private var model:NearDropModel
+	@EnvironmentObject private var model:TakeoffModel
+	@Environment(\.colorScheme) private var colorScheme
 	@Binding var importing:Bool
+	let palette:DotPalette
+
+	private var accent:Color{palette.accent(for:colorScheme)}
 
 	var body:some View{
 		VStack(spacing:0){
@@ -64,9 +97,11 @@ private struct TransferIsland:View{
 			Divider()
 			content
 				.padding(24)
-			Divider()
-			footer
-				.padding(12)
+			if showsFooter{
+				Divider()
+				footer
+					.padding(12)
+			}
 		}
 		.background(.regularMaterial, in:RoundedRectangle(cornerRadius:34, style:.continuous))
 		.overlay{
@@ -75,22 +110,67 @@ private struct TransferIsland:View{
 		}
 		.shadow(color:.black.opacity(0.12), radius:28, y:14)
 		.animation(.spring(response:0.35, dampingFraction:0.86), value:model.phase)
+		.animation(.spring(response:0.35, dampingFraction:0.86), value:model.incomingRequest?.id)
+	}
+
+	private var showsFooter:Bool{
+		model.incomingRequest==nil
 	}
 
 	private var header:some View{
-		VStack(alignment:.leading, spacing:10){
-			DotMatrixText(text:statusText, activeColor:statusColor)
-				.id(statusText)
-			HStack(spacing:8){
-				Circle()
-					.fill(model.isAvailable ? Color.green : Color.secondary)
-					.frame(width:7, height:7)
-				Text(model.isAvailable ? "Visible while NearDrop is open" : "Not available in the background")
-					.font(.footnote.monospaced())
-					.foregroundStyle(.secondary)
+		VStack(alignment:.leading, spacing:16){
+			DotMatrixBoard(lines:boardLines, width:9, palette:palette)
+			if let request=model.incomingRequest{
+				incomingSummary(request)
 			}
 		}
 		.frame(maxWidth:.infinity, alignment:.leading)
+	}
+
+	/// The board keeps a fixed character width so it does not resize as the
+	/// message changes, and splits into a second row to show an incoming PIN.
+	private var boardLines:[String]{
+		guard let request=model.incomingRequest else{return [statusText]}
+		return ["INCOMING", request.transfer.pinCode ?? ""]
+	}
+
+	private func incomingSummary(_ request:TakeoffModel.IncomingRequest)->some View{
+		HStack(spacing:12){
+			Image(systemName:transferSymbol(request.transfer))
+				.font(.title2)
+				.foregroundStyle(accent)
+				.symbolRenderingMode(.hierarchical)
+				.frame(width:30)
+			VStack(alignment:.leading, spacing:3){
+				Text(incomingDescription(request.transfer))
+					.font(.subheadline.weight(.semibold))
+					.lineLimit(2)
+					.multilineTextAlignment(.leading)
+				Text(incomingDetail(request))
+					.font(.footnote.monospaced())
+					.foregroundStyle(.secondary)
+					.lineLimit(1)
+			}
+			Spacer(minLength:0)
+		}
+		.frame(maxWidth:.infinity, alignment:.leading)
+	}
+
+	private func incomingDetail(_ request:TakeoffModel.IncomingRequest)->String{
+		let total=request.transfer.files.reduce(Int64(0)){$0+$1.size}
+		guard total>0 else{return "From \(request.device.name)"}
+		return "From \(request.device.name) · \(total.formatted(.byteCount(style:.file)))"
+	}
+
+	private func transferSymbol(_ transfer:TransferMetadata)->String{
+		if transfer.textDescription != nil{return "link"}
+		guard transfer.files.count==1, let mimeType=transfer.files.first?.mimeType else{
+			return transfer.files.isEmpty ? "doc" : "doc.on.doc"
+		}
+		if mimeType.hasPrefix("image/"){return "photo"}
+		if mimeType.hasPrefix("video/"){return "film"}
+		if mimeType.hasPrefix("audio/"){return "waveform"}
+		return "doc"
 	}
 
 	@ViewBuilder
@@ -107,9 +187,9 @@ private struct TransferIsland:View{
 				transferState(icon:"number.square", title:"Check \(name)", detail:"Confirm that both devices show \(pin).")
 			case let .transferring(name, progress):
 				VStack(spacing:18){
-					transferState(icon:"arrow.left.arrow.right", title:name, detail:"Keep both devices awake and NearDrop open.")
+					transferState(icon:"arrow.left.arrow.right", title:name, detail:"Keep both devices awake and Takeoff open.")
 					ProgressView(value:progress)
-						.tint(.teal)
+						.tint(accent)
 						.accessibilityLabel("Transfer progress")
 						.accessibilityValue(progress.formatted(.percent.precision(.fractionLength(0))))
 				}
@@ -132,7 +212,7 @@ private struct TransferIsland:View{
 				} icon:{
 					Image(systemName:"square.and.arrow.up")
 						.font(.title2)
-						.foregroundStyle(.teal)
+						.foregroundStyle(accent)
 				}
 			}else{
 				Label{
@@ -143,7 +223,7 @@ private struct TransferIsland:View{
 				} icon:{
 					Image(systemName:"doc.on.doc")
 						.font(.title2)
-						.foregroundStyle(.teal)
+						.foregroundStyle(accent)
 				}
 				if model.devices.isEmpty{
 					HStack(spacing:10){
@@ -157,7 +237,7 @@ private struct TransferIsland:View{
 						ForEach(Array(model.devices.enumerated()), id:\.element.id){ index, device in
 							if index>0{Divider()}
 							Button{model.send(to:device)} label:{
-								DeviceRow(device:device)
+								DeviceRow(device:device, accent:accent)
 							}
 							.buttonStyle(.plain)
 						}
@@ -192,31 +272,10 @@ private struct TransferIsland:View{
 		.frame(maxWidth:.infinity, alignment:.leading)
 	}
 
-	private func incoming(_ request:NearDropModel.IncomingRequest)->some View{
-		VStack(alignment:.leading, spacing:18){
-			Label{
-				VStack(alignment:.leading, spacing:4){
-					Text(request.device.name).font(.headline)
-					Text(incomingDescription(request.transfer)).font(.subheadline).foregroundStyle(.secondary)
-				}
-			} icon:{
-				Image(systemName:deviceSymbol(request.device.type))
-					.font(.title2)
-					.foregroundStyle(.teal)
-			}
-			if let pin=request.transfer.pinCode{
-				Text("Confirm code \(pin) on both devices.")
-					.font(.subheadline)
-			}
-			HStack{
-				Button("Decline", role:.cancel, action:model.declineIncoming)
-					.buttonStyle(.bordered)
-					.frame(maxWidth:.infinity)
-				Button("Accept", action:model.acceptIncoming)
-					.buttonStyle(.borderedProminent)
-					.tint(.teal)
-					.frame(maxWidth:.infinity)
-			}
+	private func incoming(_ request:TakeoffModel.IncomingRequest)->some View{
+		HStack(spacing:14){
+			DotMatrixChoice(grid:.cross, tint:.orange, label:"Decline", action:model.declineIncoming)
+			DotMatrixChoice(grid:.check, tint:.green, label:"Accept", action:model.acceptIncoming)
 		}
 	}
 
@@ -247,7 +306,7 @@ private struct TransferIsland:View{
 						.frame(maxWidth:.infinity)
 				}
 				.buttonStyle(.borderedProminent)
-				.tint(.teal)
+				.tint(accent)
 				if !model.selectedURLs.isEmpty{
 					Button(action:model.showQRCode){
 						Image(systemName:"qrcode")
@@ -263,7 +322,7 @@ private struct TransferIsland:View{
 		case .complete, .failed:
 			Button("Done", action:model.reset)
 				.buttonStyle(.borderedProminent)
-				.tint(.teal)
+				.tint(accent)
 				.frame(maxWidth:.infinity)
 		}
 	}
@@ -273,9 +332,8 @@ private struct TransferIsland:View{
 	}
 
 	private var statusText:String{
-		if model.incomingRequest != nil{return "INCOMING"}
 		switch model.phase{
-		case .ready:return model.selectedURLs.isEmpty ? "READY" : "NEARBY"
+		case .ready:return model.selectedURLs.isEmpty ? "LISTENING" : "NEARBY"
 		case .connecting:return "LINKING"
 		case let .awaitingApproval(_, pin):return pin
 		case .transferring:return "MOVING"
@@ -288,7 +346,7 @@ private struct TransferIsland:View{
 		switch model.phase{
 		case .failed:return .orange
 		case .complete:return .green
-		default:return .cyan
+		default:return accent
 		}
 	}
 
@@ -299,14 +357,40 @@ private struct TransferIsland:View{
 	}
 }
 
+private struct DotMatrixChoice:View{
+	let grid:DotGrid
+	let tint:Color
+	let label:String
+	let action:()->Void
+
+	var body:some View{
+		Button(action:action){
+			DotMatrixDisplay(grid:grid, solidColor:tint)
+				.frame(height:96)
+				.frame(maxWidth:.infinity)
+				.padding(.vertical,18)
+				.contentShape(RoundedRectangle(cornerRadius:24, style:.continuous))
+		}
+		.buttonStyle(.plain)
+		.background(tint.opacity(0.12), in:RoundedRectangle(cornerRadius:24, style:.continuous))
+		.overlay{
+			RoundedRectangle(cornerRadius:24, style:.continuous)
+				.stroke(tint.opacity(0.35), lineWidth:1)
+		}
+		.accessibilityElement(children:.ignore)
+		.accessibilityLabel(label)
+		.accessibilityAddTraits(.isButton)
+	}
+}
+
 private struct DeviceRow:View{
 	let device:RemoteDeviceInfo
-
+	let accent:Color
 	var body:some View{
 		HStack(spacing:14){
 			Image(systemName:deviceSymbol(device.type))
 				.font(.title3)
-				.foregroundStyle(.teal)
+				.foregroundStyle(accent)
 				.frame(width:34)
 			Text(device.name)
 				.font(.body.weight(.medium))

@@ -17,8 +17,8 @@ jobs:
       - name: Build
         run: >-
           xcodebuild
-          -project NearDrop-iOS.xcodeproj
-          -scheme NearDrop-iOS
+          -project Takeoff.xcodeproj
+          -scheme Takeoff
           -destination 'generic/platform=iOS Simulator'
           CODE_SIGNING_ALLOWED=NO
           build

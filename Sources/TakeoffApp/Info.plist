@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>NearDrop</string>
+	<string>Takeoff</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -29,7 +29,7 @@
 		<string>_FC9F5ED42C8A._tcp</string>
 	</array>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>NearDrop uses your local network to find Android devices and transfer files directly.</string>
+	<string>Takeoff uses your local network to find Android devices and transfer files directly.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIFileSharingEnabled</key>

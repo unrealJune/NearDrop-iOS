@@ -3,13 +3,19 @@ import SwiftUI
 
 struct ShareExtensionView:View{
 	@ObservedObject var model:ShareExtensionModel
+	@Environment(\.colorScheme) private var colorScheme
+	@AppStorage("dotPalette") private var paletteID=DotPalette.shoreline.id
+	@AppStorage("appearance") private var appearance=AppearanceOption.system
+
+	private var palette:DotPalette{.named(paletteID)}
+	private var accent:Color{palette.accent(for:colorScheme)}
 
 	var body:some View{
 		NavigationStack{
 			ZStack{
-				SignalBackground()
+				SignalBackground(palette:palette)
 				VStack(spacing:0){
-					DotMatrixText(text:status)
+					DotMatrixText(text:status, palette:palette)
 						.padding(24)
 					Divider()
 					content
@@ -23,7 +29,8 @@ struct ShareExtensionView:View{
 				}
 				.padding(16)
 			}
-			.navigationTitle("NearDrop")
+			.preferredColorScheme(appearance.colorScheme)
+			.navigationTitle("Takeoff")
 			.navigationBarTitleDisplayMode(.inline)
 			.toolbar{
 				ToolbarItem(placement:.cancellationAction){
@@ -55,7 +62,7 @@ struct ShareExtensionView:View{
 					ForEach(model.devices, id:\.id){ device in
 						Button{model.send(to:device)} label:{
 							HStack{
-								Image(systemName:"smartphone").foregroundStyle(.teal)
+								Image(systemName:"smartphone").foregroundStyle(accent)
 								Text(device.name)
 								Spacer()
 								Image(systemName:"chevron.right").foregroundStyle(.tertiary)
@@ -80,7 +87,7 @@ struct ShareExtensionView:View{
 		case let .sending(progress):
 			VStack(spacing:18){
 				state(icon:"arrow.up", title:"Sending", detail:"Keep both devices awake.")
-				ProgressView(value:progress).tint(.teal)
+				ProgressView(value:progress).tint(accent)
 			}
 		case .complete:
 			state(icon:"checkmark.circle.fill", title:"Sent", detail:"The transfer stayed on your local network.")
@@ -93,7 +100,7 @@ struct ShareExtensionView:View{
 		VStack(spacing:14){
 			Image(systemName:icon)
 				.font(.system(size:34))
-				.foregroundStyle(.teal)
+				.foregroundStyle(accent)
 			Text(title).font(.title3.weight(.semibold)).multilineTextAlignment(.center)
 			Text(detail).font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
 		}

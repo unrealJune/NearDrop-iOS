@@ -4,7 +4,7 @@ import SwiftUI
 import UIKit
 
 @MainActor
-final class NearDropModel:NSObject, ObservableObject{
+final class TakeoffModel:NSObject, ObservableObject{
 	enum Phase:Equatable{
 		case ready
 		case connecting(String)
@@ -46,6 +46,7 @@ final class NearDropModel:NSObject, ObservableObject{
 	private var selectedDevice:RemoteDeviceInfo?
 	private var securityScopedURLs:[URL]=[]
 	private var activeIncomingTransferID:String?
+	private var qrCodeTransferPending=false
 
 	override init(){
 		super.init()
@@ -123,12 +124,16 @@ final class NearDropModel:NSObject, ObservableObject{
 	}
 
 	func showQRCode(){
+		qrCodeTransferPending=false
 		let key=manager.generateQrCodeKey()
 		qrCodeURL=URL(string: "https://quickshare.google/qrcode#key=\(key)")
 	}
 
+	/// Only drops the key when the user walks away from the sheet. A scan hands
+	/// the key to the outgoing connection, which needs it to sign the handshake.
 	func dismissQRCode(){
 		qrCodeURL=nil
+		guard !qrCodeTransferPending else {return}
 		manager.clearQrCodeKey()
 	}
 
@@ -136,12 +141,16 @@ final class NearDropModel:NSObject, ObservableObject{
 		phase = .ready
 		selectedURLs=[]
 		selectedDevice=nil
+		qrCodeTransferPending=false
+		manager.clearQrCodeKey()
 		releaseSecurityScopedResources()
 	}
 
 	private func finishSending(){
 		releaseSecurityScopedResources()
 		selectedDevice=nil
+		qrCodeTransferPending=false
+		manager.clearQrCodeKey()
 	}
 
 	private func releaseSecurityScopedResources(){
@@ -150,7 +159,7 @@ final class NearDropModel:NSObject, ObservableObject{
 	}
 }
 
-extension NearDropModel:MainAppDelegate{
+extension TakeoffModel:MainAppDelegate{
 	nonisolated func obtainUserConsent(for transfer:TransferMetadata, from device:RemoteDeviceInfo){
 		Task{@MainActor in
 			incomingRequest=IncomingRequest(id: transfer.id, device: device, transfer: transfer)
@@ -178,7 +187,7 @@ extension NearDropModel:MainAppDelegate{
 	}
 }
 
-extension NearDropModel:ReceivedContentHandler{
+extension TakeoffModel:ReceivedContentHandler{
 	nonisolated func destinationURL(for file:FileMetadata) throws -> URL{
 		let documents=try FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
 		let received=documents.appendingPathComponent("Received", isDirectory: true)
@@ -199,7 +208,7 @@ extension NearDropModel:ReceivedContentHandler{
 	}
 }
 
-extension NearDropModel:ShareExtensionDelegate{
+extension TakeoffModel:ShareExtensionDelegate{
 	nonisolated func addDevice(device:RemoteDeviceInfo){
 		Task{@MainActor in
 			guard !devices.contains(where:{$0.id==device.id}) else {return}
@@ -207,13 +216,16 @@ extension NearDropModel:ShareExtensionDelegate{
 		}
 	}
 
+
+
 	nonisolated func removeDevice(id:String){
 		Task{@MainActor in devices.removeAll(where:{$0.id==id})}
 	}
 
 	nonisolated func startTransferWithQrCode(device:RemoteDeviceInfo){
 		Task{@MainActor in
-			dismissQRCode()
+			qrCodeTransferPending=true
+			qrCodeURL=nil
 			send(to: device)
 		}
 	}

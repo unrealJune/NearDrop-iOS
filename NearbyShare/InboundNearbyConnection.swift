@@ -159,13 +159,13 @@ class InboundNearbyConnection: NearbyConnection{
 	private func processConnectionRequestFrame(_ frame:Location_Nearby_Connections_OfflineFrame) throws{
 		guard frame.hasV1 && frame.v1.hasConnectionRequest && frame.v1.connectionRequest.hasEndpointInfo else { throw NearbyError.requiredFieldMissing("connectionRequest.endpointInfo") }
 		guard case .connectionRequest = frame.v1.type else { throw NearbyError.protocolError("Unexpected frame type \(frame.v1.type)") }
-		let endpointInfo=frame.v1.connectionRequest.endpointInfo
-		guard endpointInfo.count>17 else { throw NearbyError.protocolError("Endpoint info too short") }
-		let deviceNameLength=Int(endpointInfo[17])
-		guard endpointInfo.count>=deviceNameLength+18 else { throw NearbyError.protocolError("Endpoint info too short to contain the device name") }
-		guard let deviceName=String(data: endpointInfo[18..<(18+deviceNameLength)], encoding: .utf8) else { throw NearbyError.protocolError("Device name is not valid UTF-8") }
-		let rawDeviceType:Int=Int(endpointInfo[0] & 7) >> 1
-		remoteDeviceInfo=RemoteDeviceInfo(name: deviceName, type: RemoteDeviceInfo.DeviceType.fromRawValue(value: rawDeviceType))
+		// Quick Share on Windows connects without a name in its endpoint info, so
+		// fall back to the endpoint name rather than rejecting the connection.
+		guard let info=EndpointInfo(data: frame.v1.connectionRequest.endpointInfo) else { throw NearbyError.protocolError("Endpoint info too short") }
+		let fallbackName=EndpointInfo(data: frame.v1.connectionRequest.endpointName)?.name
+			?? String(data: frame.v1.connectionRequest.endpointName, encoding: .utf8)
+			?? "Unknown device"
+		remoteDeviceInfo=RemoteDeviceInfo(name: info.name ?? fallbackName, type: info.deviceType)
 		currentState = .receivedConnectionRequest
 	}
 	
