@@ -3,3 +3,4 @@ DerivedData/
 xcuserdata/
 Takeoff.xcodeproj/
 build/
+__pycache__/

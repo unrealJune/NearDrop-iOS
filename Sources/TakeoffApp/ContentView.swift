@@ -119,7 +119,7 @@ private struct TransferIsland:View{
 
 	private var header:some View{
 		VStack(alignment:.leading, spacing:16){
-			DotMatrixBoard(lines:boardLines, width:8, palette:palette)
+			DotMatrixBoard(lines:boardLines, width:9, palette:palette)
 			if let request=model.incomingRequest{
 				incomingSummary(request)
 			}
@@ -333,7 +333,7 @@ private struct TransferIsland:View{
 
 	private var statusText:String{
 		switch model.phase{
-		case .ready:return model.selectedURLs.isEmpty ? "READY" : "NEARBY"
+		case .ready:return model.selectedURLs.isEmpty ? "LISTENING" : "NEARBY"
 		case .connecting:return "LINKING"
 		case let .awaitingApproval(_, pin):return pin
 		case .transferring:return "MOVING"
