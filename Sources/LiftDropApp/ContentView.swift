@@ -219,7 +219,7 @@ private struct TransferIsland:View{
 					.contentShape(Rectangle())
 				}
 				.buttonStyle(.plain)
-				.accessibilityHint("Chooses files, photos, or documents to send")
+				.accessibilityHint("Opens the file picker")
 			}else{
 				Label{
 					VStack(alignment:.leading, spacing:4){
