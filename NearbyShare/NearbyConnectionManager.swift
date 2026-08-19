@@ -369,42 +369,63 @@ public class NearbyConnectionManager : NSObject, NetServiceDelegate, InboundNear
 	public func startDeviceDiscovery(){
 		if discoveryRefCount==0{
 			foundServices.removeAll()
-			if browser==nil{
-				browser=NWBrowser(for: .bonjourWithTXTRecord(type: "_FC9F5ED42C8A._tcp.", domain: nil), using: .tcp)
-				browser?.stateUpdateHandler={[weak self] state in
-					self?.browserStateChanged(state)
-				}
-				browser?.browseResultsChangedHandler={newResults, changes in
-					for change in changes{
-						switch change{
-						case let .added(res):
-							self.maybeAddFoundDevice(service: res)
-						case let .removed(res):
-							self.maybeRemoveFoundDevice(service: res)
-						default:
-							break
-						}
-					}
-				}
-			}
-			browser?.start(queue: .main)
+			startBrowser()
 		}
 		discoveryRefCount+=1
 	}
 	
+	private func startBrowser(){
+		if browser==nil{
+			browser=NWBrowser(for: .bonjourWithTXTRecord(type: "_FC9F5ED42C8A._tcp.", domain: nil), using: .tcp)
+			browser?.stateUpdateHandler={[weak self] state in
+				self?.browserStateChanged(state)
+			}
+			browser?.browseResultsChangedHandler={newResults, changes in
+				for change in changes{
+					switch change{
+					case let .added(res):
+						self.maybeAddFoundDevice(service: res)
+					case let .removed(res):
+						self.maybeRemoveFoundDevice(service: res)
+					default:
+						break
+					}
+				}
+			}
+		}
+		browser?.start(queue: .main)
+	}
+	
 	/// iOS parks a Bonjour browser in `waiting` while the local network prompt is
 	/// unanswered and leaves it there once access is refused, so both cases read
-	/// as "the user still has to allow this".
+	/// as "the user still has to allow this". `cancelled` is deliberately not
+	/// mapped: cancelling is how a browser is replaced, and only
+	/// `stopDeviceDiscovery` means discovery is genuinely over.
 	private func browserStateChanged(_ state:NWBrowser.State){
 		switch state{
 		case .ready:
 			updateLocalNetworkStatus(.ready)
-		case let .waiting(error), let .failed(error):
+		case let .waiting(error):
 			updateLocalNetworkStatus(NearbyConnectionManager.status(for: error))
-		case .cancelled:
-			updateLocalNetworkStatus(.idle)
+		case let .failed(error):
+			updateLocalNetworkStatus(NearbyConnectionManager.status(for: error))
+			replaceBrowser()
 		default:
 			break
+		}
+	}
+	
+	/// A failed browser is terminal, so it has to be replaced rather than
+	/// restarted. Discovery only runs while the app is in the foreground, so a
+	/// delayed retry picks the search back up without spinning on a browser that
+	/// keeps failing immediately.
+	private func replaceBrowser(){
+		browser?.cancel()
+		browser=nil
+		guard discoveryRefCount>0 else {return}
+		DispatchQueue.main.asyncAfter(deadline: .now()+2){[weak self] in
+			guard let self, self.browser==nil, self.discoveryRefCount>0 else {return}
+			self.startBrowser()
 		}
 	}
 	
@@ -416,8 +437,8 @@ public class NearbyConnectionManager : NSObject, NetServiceDelegate, InboundNear
 	}
 	
 	private func updateLocalNetworkStatus(_ newStatus:LocalNetworkStatus){
-		DispatchQueue.main.async{
-			guard self.localNetworkStatus != newStatus else {return}
+		DispatchQueue.main.async{[weak self] in
+			guard let self, self.localNetworkStatus != newStatus else {return}
 			self.localNetworkStatus=newStatus
 			for delegate in self.shareExtensionDelegates{
 				delegate.localNetworkStatusChanged(newStatus)
