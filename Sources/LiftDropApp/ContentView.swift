@@ -204,16 +204,22 @@ private struct TransferIsland:View{
 	private var ready:some View{
 		VStack(alignment:.leading, spacing:18){
 			if model.selectedURLs.isEmpty{
-				Label{
-					VStack(alignment:.leading, spacing:4){
-						Text("Send something nearby").font(.headline)
-						Text("Choose files, photos, or documents.").font(.subheadline).foregroundStyle(.secondary)
+				Button{importing=true} label:{
+					Label{
+						VStack(alignment:.leading, spacing:4){
+							Text("Send something nearby").font(.headline)
+							Text("Choose files, photos, or documents.").font(.subheadline).foregroundStyle(.secondary)
+						}
+					} icon:{
+						Image(systemName:"square.and.arrow.up")
+							.font(.title2)
+							.foregroundStyle(accent)
 					}
-				} icon:{
-					Image(systemName:"square.and.arrow.up")
-						.font(.title2)
-						.foregroundStyle(accent)
+					.frame(maxWidth:.infinity, minHeight:44, alignment:.leading)
+					.contentShape(Rectangle())
 				}
+				.buttonStyle(.plain)
+				.accessibilityHint("Opens the file picker")
 			}else{
 				Label{
 					VStack(alignment:.leading, spacing:4){
