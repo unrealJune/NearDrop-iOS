@@ -16,8 +16,13 @@ struct LiftDropApp:App{
 			switch phase{
 			case .active:
 				model.becomeActive()
-			case .inactive, .background:
+			case .background:
 				model.resignActive()
+			case .inactive:
+				// iOS deactivates the scene while the Local Network permission
+				// alert is on screen. Tearing the browser down here cancels the
+				// request that alert is asking about, so the answer never sticks.
+				break
 			@unknown default:
 				break
 			}

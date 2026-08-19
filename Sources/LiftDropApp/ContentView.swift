@@ -1,5 +1,6 @@
 import NearbyShareCore
 import SwiftUI
+import UIKit
 import UniformTypeIdentifiers
 
 struct ContentView:View{
@@ -83,10 +84,15 @@ private struct QRItem:Identifiable{
 private struct TransferIsland:View{
 	@EnvironmentObject private var model:LiftDropModel
 	@Environment(\.colorScheme) private var colorScheme
+	@Environment(\.openURL) private var openURL
 	@Binding var importing:Bool
 	let palette:DotPalette
 
 	private var accent:Color{palette.accent(for:colorScheme)}
+
+	private var needsLocalNetworkPermission:Bool{
+		model.localNetworkStatus == .waitingForPermission
+	}
 
 	var body:some View{
 		VStack(spacing:0){
@@ -203,6 +209,9 @@ private struct TransferIsland:View{
 
 	private var ready:some View{
 		VStack(alignment:.leading, spacing:18){
+			if needsLocalNetworkPermission{
+				localNetworkNotice
+			}
 			if model.selectedURLs.isEmpty{
 				Label{
 					VStack(alignment:.leading, spacing:4){
@@ -225,14 +234,14 @@ private struct TransferIsland:View{
 						.font(.title2)
 						.foregroundStyle(accent)
 				}
-				if model.devices.isEmpty{
+				if model.devices.isEmpty && !needsLocalNetworkPermission{
 					HStack(spacing:10){
 						ProgressView().controlSize(.small)
 						Text("Looking on this Wi-Fi network…")
 							.font(.subheadline)
 							.foregroundStyle(.secondary)
 					}
-				}else{
+				}else if !model.devices.isEmpty{
 					VStack(spacing:0){
 						ForEach(Array(model.devices.enumerated()), id:\.element.id){ index, device in
 							if index>0{Divider()}
@@ -267,6 +276,33 @@ private struct TransferIsland:View{
 					.buttonStyle(.plain)
 					.frame(minHeight:44)
 				}
+			}
+		}
+		.frame(maxWidth:.infinity, alignment:.leading)
+	}
+
+	/// The system prompt only appears while discovery is running, so the island
+	/// explains what is being asked for and offers a way back to Settings if the
+	/// prompt was already answered with a no.
+	private var localNetworkNotice:some View{
+		VStack(alignment:.leading, spacing:10){
+			Label{
+				VStack(alignment:.leading, spacing:4){
+					Text("Allow Local Network access").font(.headline)
+					Text("LiftDrop finds nearby devices over Wi-Fi. Allow it when iOS asks, or turn it on in Settings.")
+						.font(.subheadline)
+						.foregroundStyle(.secondary)
+				}
+			} icon:{
+				Image(systemName:"wifi.exclamationmark")
+					.font(.title2)
+					.foregroundStyle(.orange)
+					.symbolRenderingMode(.hierarchical)
+			}
+			if let settings=URL(string:UIApplication.openSettingsURLString){
+				Button("Open Settings"){openURL(settings)}
+					.font(.subheadline.weight(.semibold))
+					.frame(minHeight:44)
 			}
 		}
 		.frame(maxWidth:.infinity, alignment:.leading)
@@ -333,7 +369,9 @@ private struct TransferIsland:View{
 
 	private var statusText:String{
 		switch model.phase{
-		case .ready:return model.selectedURLs.isEmpty ? "LISTENING" : "NEARBY"
+		case .ready:
+			if needsLocalNetworkPermission{return "ALLOW"}
+			return model.selectedURLs.isEmpty ? "LISTENING" : "NEARBY"
 		case .connecting:return "LINKING"
 		case let .awaitingApproval(_, pin):return pin
 		case .transferring:return "MOVING"

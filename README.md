@@ -34,6 +34,9 @@ physical iPhone/iPad and Android devices.
 ## Current constraints
 
 - Wi-Fi LAN only.
+- iOS asks for Local Network access the first time LiftDrop looks for devices.
+  Discovery and receiving stay unavailable until it is allowed, and the app
+  offers a link to Settings if it was refused.
 - LiftDrop must remain open in the foreground to receive.
 - Both devices must be on a local network that allows peer-to-peer traffic.
 - Android visibility may require scanning the QR code shown by LiftDrop.

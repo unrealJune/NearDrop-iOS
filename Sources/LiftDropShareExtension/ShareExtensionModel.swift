@@ -18,6 +18,7 @@ final class ShareExtensionModel:NSObject, ObservableObject{
 
 	@Published private(set) var phase=Phase.loading
 	@Published private(set) var devices:[RemoteDeviceInfo]=[]
+	@Published private(set) var localNetworkStatus=LocalNetworkStatus.idle
 	@Published private(set) var itemCount=0
 	@Published var qrCodeURL:URL?
 
@@ -140,6 +141,10 @@ extension ShareExtensionModel:ShareExtensionDelegate{
 
 	nonisolated func removeDevice(id:String){
 		Task{@MainActor in devices.removeAll(where:{$0.id==id})}
+	}
+
+	nonisolated func localNetworkStatusChanged(_ status:LocalNetworkStatus){
+		Task{@MainActor in localNetworkStatus=status}
 	}
 
 	nonisolated func startTransferWithQrCode(device:RemoteDeviceInfo){

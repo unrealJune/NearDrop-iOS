@@ -9,6 +9,10 @@ import Foundation
 import Network
 import CryptoKit
 import SwiftECC
+import dnssd
+#if canImport(UIKit)
+import UIKit
+#endif
 
 public struct RemoteDeviceInfo{
 	public let name:String
@@ -64,6 +68,16 @@ public enum NearbyError:Error{
 	public enum CancellationReason{
 		case userRejected, userCanceled, notEnoughSpace, unsupportedType, timedOut
 	}
+}
+
+/// Whether the platform is letting this process onto the local network. iOS
+/// hides Bonjour behind a permission prompt, and the browser is the only signal
+/// that says whether that prompt is still unanswered.
+public enum LocalNetworkStatus:Equatable{
+	case idle
+	case waitingForPermission
+	case ready
+	case failed(String)
 }
 
 public struct TransferMetadata{
@@ -192,6 +206,11 @@ public protocol ShareExtensionDelegate:AnyObject{
 	func transferAccepted()
 	func transferProgress(progress:Double)
 	func transferFinished()
+	func localNetworkStatusChanged(_ status:LocalNetworkStatus)
+}
+
+public extension ShareExtensionDelegate{
+	func localNetworkStatusChanged(_ status:LocalNetworkStatus){}
 }
 
 public class NearbyConnectionManager : NSObject, NetServiceDelegate, InboundNearbyConnectionDelegate, OutboundNearbyConnectionDelegate{
@@ -205,9 +224,30 @@ public class NearbyConnectionManager : NSObject, NetServiceDelegate, InboundNear
 	private var outgoingTransfers:[String:OutgoingTransferInfo]=[:]
 	public var mainAppDelegate:(any MainAppDelegate)?
 	public weak var receivedContentHandler:(any ReceivedContentHandler)?
-	public var localDeviceName=ProcessInfo.processInfo.hostName
+	public var localDeviceName=NearbyConnectionManager.defaultLocalDeviceName
 	public var localDeviceType=RemoteDeviceInfo.DeviceType.computer
+	public private(set) var localNetworkStatus=LocalNetworkStatus.idle
 	private var discoveryRefCount=0
+	
+	/// `ProcessInfo.hostName` resolves the host name over mDNS, which blocks its
+	/// caller for seconds and needs local network access of its own. On UIKit
+	/// platforms that access sits behind a permission prompt, so asking for the
+	/// name at launch stalls the main thread before the prompt can even appear.
+	private static var defaultLocalDeviceName:String{
+		#if canImport(UIKit)
+		return UIDevice.current.name
+		#else
+		return ProcessInfo.processInfo.hostName
+		#endif
+	}
+	
+	/// `kDNSServiceErr_NoAuth` is reported while the local network prompt is
+	/// unanswered and after it is refused; `kDNSServiceErr_PolicyDenied` arrives
+	/// once the system has a stored refusal.
+	private static let localNetworkDenialCodes:Set<DNSServiceErrorType>=[
+		DNSServiceErrorType(kDNSServiceErr_NoAuth),
+		DNSServiceErrorType(kDNSServiceErr_PolicyDenied)
+	]
 	
 	private var browser:NWBrowser?
 	
@@ -242,9 +282,13 @@ public class NearbyConnectionManager : NSObject, NetServiceDelegate, InboundNear
 	}
 	
 	private func startTCPListener(){
-		tcpListener?.stateUpdateHandler={(state:NWListener.State) in
+		tcpListener?.stateUpdateHandler={[weak self] (state:NWListener.State) in
+			guard let self else {return}
 			if case .ready = state {
-				self.initMDNS()
+				// NetService is a run loop API and the listener runs its handlers
+				// on a dispatch queue that has none, so publishing has to hop to
+				// the main queue to actually reach mDNSResponder.
+				DispatchQueue.main.async{self.initMDNS()}
 			}
 		}
 		tcpListener?.newConnectionHandler={(connection:NWConnection) in
@@ -279,12 +323,25 @@ public class NearbyConnectionManager : NSObject, NetServiceDelegate, InboundNear
 		
 		guard let portValue=tcpListener?.port?.rawValue else {return}
 		let port:Int32=Int32(portValue)
+		mdnsService?.stop()
 		mdnsService=NetService(domain: "", type: "_FC9F5ED42C8A._tcp.", name: name, port: port)
 		mdnsService?.delegate=self
 		mdnsService?.setTXTRecord(NetService.data(fromTXTRecord: [
 			"n": endpointInfo.serialize().urlSafeBase64EncodedString().data(using: .utf8)!
 		]))
 		mdnsService?.publish()
+	}
+	
+	public func netServiceDidPublish(_ sender:NetService){
+		#if DEBUG
+		print("published mDNS service \(sender.name)")
+		#endif
+	}
+	
+	public func netService(_ sender:NetService, didNotPublish errorDict:[String:NSNumber]){
+		#if DEBUG
+		print("failed to publish mDNS service: \(errorDict)")
+		#endif
 	}
 	
 	func obtainUserConsent(for transfer: TransferMetadata, from device: RemoteDeviceInfo, connection: InboundNearbyConnection) {
@@ -314,6 +371,9 @@ public class NearbyConnectionManager : NSObject, NetServiceDelegate, InboundNear
 			foundServices.removeAll()
 			if browser==nil{
 				browser=NWBrowser(for: .bonjourWithTXTRecord(type: "_FC9F5ED42C8A._tcp.", domain: nil), using: .tcp)
+				browser?.stateUpdateHandler={[weak self] state in
+					self?.browserStateChanged(state)
+				}
 				browser?.browseResultsChangedHandler={newResults, changes in
 					for change in changes{
 						switch change{
@@ -332,17 +392,52 @@ public class NearbyConnectionManager : NSObject, NetServiceDelegate, InboundNear
 		discoveryRefCount+=1
 	}
 	
+	/// iOS parks a Bonjour browser in `waiting` while the local network prompt is
+	/// unanswered and leaves it there once access is refused, so both cases read
+	/// as "the user still has to allow this".
+	private func browserStateChanged(_ state:NWBrowser.State){
+		switch state{
+		case .ready:
+			updateLocalNetworkStatus(.ready)
+		case let .waiting(error), let .failed(error):
+			updateLocalNetworkStatus(NearbyConnectionManager.status(for: error))
+		case .cancelled:
+			updateLocalNetworkStatus(.idle)
+		default:
+			break
+		}
+	}
+	
+	private static func status(for error:NWError)->LocalNetworkStatus{
+		if case let .dns(code)=error, localNetworkDenialCodes.contains(code){
+			return .waitingForPermission
+		}
+		return .failed(error.localizedDescription)
+	}
+	
+	private func updateLocalNetworkStatus(_ newStatus:LocalNetworkStatus){
+		DispatchQueue.main.async{
+			guard self.localNetworkStatus != newStatus else {return}
+			self.localNetworkStatus=newStatus
+			for delegate in self.shareExtensionDelegates{
+				delegate.localNetworkStatusChanged(newStatus)
+			}
+		}
+	}
+	
 	public func stopDeviceDiscovery(){
 		discoveryRefCount-=1
 		assert(discoveryRefCount>=0)
 		if discoveryRefCount==0{
 			browser?.cancel()
 			browser=nil
+			updateLocalNetworkStatus(.idle)
 		}
 	}
 	
 	public func addShareExtensionDelegate(_ delegate:ShareExtensionDelegate){
 		shareExtensionDelegates.append(delegate)
+		delegate.localNetworkStatusChanged(localNetworkStatus)
 		for service in foundServices.values{
 			guard let device=service.device else {continue}
 			delegate.addDevice(device: device)

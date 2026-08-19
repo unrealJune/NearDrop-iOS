@@ -35,6 +35,7 @@ final class LiftDropModel:NSObject, ObservableObject{
 	@Published private(set) var devices:[RemoteDeviceInfo]=[]
 	@Published private(set) var phase=Phase.ready
 	@Published private(set) var isAvailable=false
+	@Published private(set) var localNetworkStatus=LocalNetworkStatus.idle
 	@Published private(set) var receivedItems:[ReceivedItem]=[]
 	@Published var incomingRequest:IncomingRequest?
 	@Published var receivedLink:ReceivedLink?
@@ -80,6 +81,7 @@ final class LiftDropModel:NSObject, ObservableObject{
 		manager.removeShareExtensionDelegate(self)
 		manager.resignVisibility()
 		devices.removeAll()
+		localNetworkStatus = .idle
 	}
 
 	func choose(urls:[URL]){
@@ -220,6 +222,10 @@ extension LiftDropModel:ShareExtensionDelegate{
 
 	nonisolated func removeDevice(id:String){
 		Task{@MainActor in devices.removeAll(where:{$0.id==id})}
+	}
+
+	nonisolated func localNetworkStatusChanged(_ status:LocalNetworkStatus){
+		Task{@MainActor in localNetworkStatus=status}
 	}
 
 	nonisolated func startTransferWithQrCode(device:RemoteDeviceInfo){

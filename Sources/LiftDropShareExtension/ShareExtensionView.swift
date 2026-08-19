@@ -55,7 +55,21 @@ struct ShareExtensionView:View{
 			VStack(alignment:.leading, spacing:16){
 				Text(model.itemCount==1 ? "Choose a nearby device" : "Send \(model.itemCount) items")
 					.font(.headline)
-				if model.devices.isEmpty{
+				if model.localNetworkStatus == .waitingForPermission{
+					Label{
+						VStack(alignment:.leading, spacing:4){
+							Text("Allow Local Network access").font(.subheadline.weight(.semibold))
+							Text("LiftDrop finds nearby devices over Wi-Fi. Allow it when iOS asks, or turn it on in Settings › LiftDrop.")
+								.font(.footnote)
+								.foregroundStyle(.secondary)
+						}
+					} icon:{
+						Image(systemName:"wifi.exclamationmark")
+							.foregroundStyle(.orange)
+							.symbolRenderingMode(.hierarchical)
+					}
+					.frame(maxWidth:.infinity, alignment:.leading)
+				}else if model.devices.isEmpty{
 					ProgressView("Looking on this Wi-Fi network…")
 						.frame(maxWidth:.infinity, alignment:.leading)
 				}else{
