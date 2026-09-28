@@ -1,7 +1,10 @@
+import CoreTransferable
 import Foundation
 import NearbyShareCore
+import PhotosUI
 import SwiftUI
 import UIKit
+import UniformTypeIdentifiers
 
 @MainActor
 final class LiftDropModel:NSObject, ObservableObject{
@@ -36,6 +39,7 @@ final class LiftDropModel:NSObject, ObservableObject{
 	@Published private(set) var phase=Phase.ready
 	@Published private(set) var isAvailable=false
 	@Published private(set) var receivedItems:[ReceivedItem]=[]
+	@Published private(set) var isPreparingItems=false
 	@Published var incomingRequest:IncomingRequest?
 	@Published var receivedLink:ReceivedLink?
 	@Published var selectedURLs:[URL]=[]
@@ -47,9 +51,11 @@ final class LiftDropModel:NSObject, ObservableObject{
 	private var securityScopedURLs:[URL]=[]
 	private var activeIncomingTransferID:String?
 	private var qrCodeTransferPending=false
+	private var photoLoadTask:Task<Void, Never>?
 
 	override init(){
 		super.init()
+		StagedMedia.removeAll()
 		manager.mainAppDelegate=self
 		manager.receivedContentHandler=self
 		manager.localDeviceName=UIDevice.current.name
@@ -83,10 +89,36 @@ final class LiftDropModel:NSObject, ObservableObject{
 	}
 
 	func choose(urls:[URL]){
-		releaseSecurityScopedResources()
+		releaseSelection()
 		selectedURLs=urls
 		securityScopedURLs=urls.filter{$0.startAccessingSecurityScopedResource()}
 		phase = .ready
+	}
+
+	/// Photos are exported into a staging directory first because the protocol
+	/// needs real files with a known size before the transfer starts.
+	func choose(photos items:[PhotosPickerItem]){
+		guard !items.isEmpty else {return}
+		releaseSelection()
+		phase = .ready
+		isPreparingItems=true
+		photoLoadTask=Task{
+			var urls:[URL]=[]
+			for item in items{
+				if Task.isCancelled {return}
+				// Items that fail to export are skipped; the header count shows what will be sent.
+				if let media=try? await item.loadTransferable(type:StagedMedia.self){
+					urls.append(media.url)
+				}
+			}
+			if Task.isCancelled {return}
+			isPreparingItems=false
+			photoLoadTask=nil
+			selectedURLs=urls
+			if urls.isEmpty{
+				phase = .failed("LiftDrop could not read the selected photos. If they are stored in iCloud, check your connection and try again.")
+			}
+		}
 	}
 
 	func send(to device:RemoteDeviceInfo){
@@ -139,11 +171,10 @@ final class LiftDropModel:NSObject, ObservableObject{
 
 	func reset(){
 		phase = .ready
-		selectedURLs=[]
 		selectedDevice=nil
 		qrCodeTransferPending=false
 		manager.clearQrCodeKey()
-		releaseSecurityScopedResources()
+		releaseSelection()
 	}
 
 	private func finishSending(){
@@ -156,6 +187,51 @@ final class LiftDropModel:NSObject, ObservableObject{
 	private func releaseSecurityScopedResources(){
 		securityScopedURLs.forEach{$0.stopAccessingSecurityScopedResource()}
 		securityScopedURLs.removeAll()
+	}
+
+	private func releaseSelection(){
+		photoLoadTask?.cancel()
+		photoLoadTask=nil
+		isPreparingItems=false
+		releaseSecurityScopedResources()
+		selectedURLs=[]
+		StagedMedia.removeAll()
+	}
+}
+
+/// A photo or video exported from the photo library into the app's temporary
+/// directory, keeping the name Photos gives it so the receiver sees a
+/// meaningful file name.
+struct StagedMedia:Transferable{
+	let url:URL
+
+	static var transferRepresentation:some TransferRepresentation{
+		// Images first so a Live Photo is sent as its still photo.
+		FileRepresentation(importedContentType:.image){ received in
+			StagedMedia(url:try stage(received.file, fallbackName:"Photo"))
+		}
+		FileRepresentation(importedContentType:.movie){ received in
+			StagedMedia(url:try stage(received.file, fallbackName:"Video"))
+		}
+	}
+
+	private static var root:URL{
+		FileManager.default.temporaryDirectory.appendingPathComponent("Outgoing", isDirectory:true)
+	}
+
+	static func removeAll(){
+		try? FileManager.default.removeItem(at:root)
+	}
+
+	/// Each file gets its own directory so identical names never collide.
+	private static func stage(_ source:URL, fallbackName:String) throws -> URL{
+		let directory=root.appendingPathComponent(UUID().uuidString, isDirectory:true)
+		try FileManager.default.createDirectory(at:directory, withIntermediateDirectories:true)
+		let baseName=source.deletingPathExtension().lastPathComponent
+		let name=UUID(uuidString:baseName)==nil ? source.lastPathComponent : fallbackName+"."+source.pathExtension
+		let destination=directory.appendingPathComponent(name)
+		try FileManager.default.copyItem(at:source, to:destination)
+		return destination
 	}
 }
 

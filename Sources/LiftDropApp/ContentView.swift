@@ -1,4 +1,5 @@
 import NearbyShareCore
+import PhotosUI
 import SwiftUI
 import UniformTypeIdentifiers
 
@@ -9,6 +10,8 @@ struct ContentView:View{
 	@AppStorage("dotPalette") private var paletteID=DotPalette.shoreline.id
 	@AppStorage("appearance") private var appearance=AppearanceOption.system
 	@State private var importing=false
+	@State private var pickingPhotos=false
+	@State private var photoSelection:[PhotosPickerItem]=[]
 
 	private var palette:DotPalette{.named(paletteID)}
 
@@ -17,7 +20,7 @@ struct ContentView:View{
 			ZStack{
 				SignalBackground(palette:palette)
 				.overlay(alignment:.center){
-					TransferIsland(importing:$importing, palette:palette)
+					TransferIsland(importing:$importing, pickingPhotos:$pickingPhotos, palette:palette)
 						.environmentObject(model)
 						.padding(.horizontal,16)
 						.frame(maxWidth:640)
@@ -36,6 +39,18 @@ struct ContentView:View{
 				allowsMultipleSelection:true
 			){ result in
 				if case let .success(urls)=result{model.choose(urls:urls)}
+			}
+			.photosPicker(
+				isPresented:$pickingPhotos,
+				selection:$photoSelection,
+				matching:.any(of:[.images, .videos, .livePhotos]),
+				// Send originals (HEIC/HEVC stay as-is), matching what the Photos share sheet sends.
+				preferredItemEncoding:.current
+			)
+			.onChange(of:photoSelection){ items in
+				guard !items.isEmpty else {return}
+				model.choose(photos:items)
+				photoSelection=[]
 			}
 			.sheet(item:Binding(
 				get:{model.qrCodeURL.map(QRItem.init)},
@@ -84,6 +99,7 @@ private struct TransferIsland:View{
 	@EnvironmentObject private var model:LiftDropModel
 	@Environment(\.colorScheme) private var colorScheme
 	@Binding var importing:Bool
+	@Binding var pickingPhotos:Bool
 	let palette:DotPalette
 
 	private var accent:Color{palette.accent(for:colorScheme)}
@@ -203,7 +219,14 @@ private struct TransferIsland:View{
 
 	private var ready:some View{
 		VStack(alignment:.leading, spacing:18){
-			if model.selectedURLs.isEmpty{
+			if model.isPreparingItems{
+				HStack(spacing:10){
+					ProgressView().controlSize(.small)
+					Text("Preparing items…")
+						.font(.subheadline)
+						.foregroundStyle(.secondary)
+				}
+			}else if model.selectedURLs.isEmpty{
 				Label{
 					VStack(alignment:.leading, spacing:4){
 						Text("Send something nearby").font(.headline)
@@ -301,12 +324,20 @@ private struct TransferIsland:View{
 		switch model.phase{
 		case .ready:
 			HStack(spacing:10){
-				Button{importing=true} label:{
+				Menu{
+					Button{pickingPhotos=true} label:{
+						Label("Photo Library", systemImage:"photo.on.rectangle")
+					}
+					Button{importing=true} label:{
+						Label("Files", systemImage:"folder")
+					}
+				} label:{
 					Label(model.selectedURLs.isEmpty ? "Choose items" : "Choose different items", systemImage:"plus")
 						.frame(maxWidth:.infinity)
 				}
 				.buttonStyle(.borderedProminent)
 				.tint(accent)
+				.disabled(model.isPreparingItems)
 				if !model.selectedURLs.isEmpty{
 					Button(action:model.showQRCode){
 						Image(systemName:"qrcode")
@@ -333,7 +364,9 @@ private struct TransferIsland:View{
 
 	private var statusText:String{
 		switch model.phase{
-		case .ready:return model.selectedURLs.isEmpty ? "LISTENING" : "NEARBY"
+		case .ready:
+			if model.isPreparingItems{return "LOADING"}
+			return model.selectedURLs.isEmpty ? "LISTENING" : "NEARBY"
 		case .connecting:return "LINKING"
 		case let .awaitingApproval(_, pin):return pin
 		case .transferring:return "MOVING"
