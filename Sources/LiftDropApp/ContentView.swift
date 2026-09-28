@@ -44,8 +44,8 @@ struct ContentView:View{
 				isPresented:$pickingPhotos,
 				selection:$photoSelection,
 				matching:.any(of:[.images, .videos, .livePhotos]),
-				// Transcodes HEIC/HEVC to JPEG/H.264 so Android and older devices can open them.
-				preferredItemEncoding:.compatible
+				// Send originals (HEIC/HEVC stay as-is), matching what the Photos share sheet sends.
+				preferredItemEncoding:.current
 			)
 			.onChange(of:photoSelection){ items in
 				guard !items.isEmpty else {return}
