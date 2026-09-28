@@ -87,15 +87,7 @@ final class ShareExtensionModel:NSObject, ObservableObject{
 		let providers=inputItems.flatMap{$0.attachments ?? []}
 		do{
 			for provider in providers{
-				if provider.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier),
-				   let value=try await provider.loadItem(forTypeIdentifier:UTType.fileURL.identifier) as? URL{
-					urls.append(try copyIntoTemporaryDirectory(value))
-				}else if provider.hasItemConformingToTypeIdentifier(UTType.url.identifier),
-						 let value=try await provider.loadItem(forTypeIdentifier:UTType.url.identifier) as? URL{
-					urls.append(value.isFileURL ? try copyIntoTemporaryDirectory(value) : value)
-				}else if let identifier=provider.registeredTypeIdentifiers.first{
-					urls.append(try await provider.copyFileRepresentation(forTypeIdentifier:identifier))
-				}
+				if let url=try await loadURL(from:provider){urls.append(url)}
 			}
 			guard !urls.isEmpty else{
 				fail("LiftDrop could not read the shared items.")
@@ -108,15 +100,58 @@ final class ShareExtensionModel:NSObject, ObservableObject{
 		}
 	}
 
-	private func fail(_ message:String){
-		phase = .failed(message)
+	/// Photos hands over image and movie data rather than file URLs, and often
+	/// registers private or derived types first, so media is matched by
+	/// conformance before falling back to links and arbitrary data.
+	private func loadURL(from provider:NSItemProvider) async throws -> URL?{
+		if provider.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier),
+		   let value=try await provider.loadItem(forTypeIdentifier:UTType.fileURL.identifier) as? URL{
+			return try stageFile(at:value)
+		}
+		for type in [UTType.image, .movie, .audiovisualContent]{
+			if let identifier=provider.firstRegisteredType(conformingTo:type){
+				return try await loadFile(from:provider, type:identifier)
+			}
+		}
+		if provider.hasItemConformingToTypeIdentifier(UTType.url.identifier),
+		   let value=try await provider.loadItem(forTypeIdentifier:UTType.url.identifier) as? URL{
+			return value.isFileURL ? try stageFile(at:value) : value
+		}
+		if let identifier=provider.firstRegisteredType(conformingTo:.data){
+			return try await loadFile(from:provider, type:identifier)
+		}
+		return nil
 	}
 
-	private func copyIntoTemporaryDirectory(_ source:URL) throws -> URL{
-		let destination=FileManager.default.temporaryDirectory
-			.appendingPathComponent(UUID().uuidString+"-"+source.lastPathComponent)
-		try FileManager.default.copyItem(at:source, to:destination)
-		return destination
+	/// Screenshots and some apps provide an in-memory image instead of a file,
+	/// which `loadFileRepresentation` rejects.
+	private func loadFile(from provider:NSItemProvider, type identifier:String) async throws -> URL{
+		let fileExtension=UTType(identifier)?.preferredFilenameExtension
+		let baseName=provider.suggestedName ?? "Shared Item"
+		do{
+			return try await provider.copyFileRepresentation(forTypeIdentifier:identifier)
+		}catch{
+			switch try await provider.loadItem(forTypeIdentifier:identifier){
+			case let url as URL where url.isFileURL:
+				return try stageFile(at:url)
+			case let data as Data:
+				return try stageData(data, named:fileName(baseName, fileExtension))
+			case let image as UIImage:
+				guard let data=image.pngData() else{throw error}
+				return try stageData(data, named:(baseName as NSString).deletingPathExtension+".png")
+			default:
+				throw error
+			}
+		}
+	}
+
+	private func fileName(_ baseName:String, _ fileExtension:String?)->String{
+		guard let fileExtension, (baseName as NSString).pathExtension.isEmpty else{return baseName}
+		return baseName+"."+fileExtension
+	}
+
+	private func fail(_ message:String){
+		phase = .failed(message)
 	}
 
 	private func cleanup(){
@@ -191,17 +226,41 @@ private extension NSItemProvider{
 			loadFileRepresentation(forTypeIdentifier:identifier){ url, error in
 				if let error{continuation.resume(throwing:error)}
 				else if let url{
-					do{
-						let destination=FileManager.default.temporaryDirectory
-							.appendingPathComponent(UUID().uuidString+"-"+url.lastPathComponent)
-						try FileManager.default.copyItem(at:url, to:destination)
-						continuation.resume(returning:destination)
-					}catch{
-						continuation.resume(throwing:error)
-					}
+					// The provided file is deleted when this handler returns.
+					do{continuation.resume(returning:try stageFile(at:url))}
+					catch{continuation.resume(throwing:error)}
 				}
 				else{continuation.resume(throwing:CocoaError(.fileNoSuchFile))}
 			}
 		}
 	}
+
+	func firstRegisteredType(conformingTo type:UTType)->String?{
+		registeredTypeIdentifiers.first{ identifier in
+			guard let candidate=UTType(identifier), !candidate.isDynamic else{return false}
+			return candidate.conforms(to:type)
+		}
+	}
+}
+
+/// Each item gets its own directory so the name the receiver sees is the
+/// original file name rather than a uniquing prefix.
+private func stagingDirectory() throws -> URL{
+	let directory=FileManager.default.temporaryDirectory
+		.appendingPathComponent("Outgoing", isDirectory:true)
+		.appendingPathComponent(UUID().uuidString, isDirectory:true)
+	try FileManager.default.createDirectory(at:directory, withIntermediateDirectories:true)
+	return directory
+}
+
+private func stageFile(at source:URL) throws -> URL{
+	let destination=try stagingDirectory().appendingPathComponent(source.lastPathComponent)
+	try FileManager.default.copyItem(at:source, to:destination)
+	return destination
+}
+
+private func stageData(_ data:Data, named name:String) throws -> URL{
+	let destination=try stagingDirectory().appendingPathComponent(name)
+	try data.write(to:destination)
+	return destination
 }
